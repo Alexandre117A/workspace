@@ -217,6 +217,26 @@ function Scene({ w, h, phase }: { w: number; h: number; phase: Animated.Value })
   );
 }
 
+/** Photographie fondue dans la scène : noir et blanc, bords dissous dans le décor (aucune frontière visible). */
+function PhotoBand({ p, w, top }: { p: { src: number; year: string; label: string }; w: number; top: number }) {
+  const bh = 380;
+  const gray: any = { filter: "grayscale(1) contrast(1.15) brightness(0.8)" };
+  return (
+    <View style={{ position: "absolute", left: 0, top, width: w, height: bh }}>
+      <Image source={p.src} resizeMode="cover" style={[{ width: w, height: bh, opacity: 0.85 }, gray]} />
+      <Svg style={StyleSheet.absoluteFill} width={w} height={bh}>
+        <Defs>
+          <LinearGradient id="pf" x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor="#10141B" stopOpacity="1" /><Stop offset="0.3" stopColor="#10141B" stopOpacity="0" /><Stop offset="0.7" stopColor="#10141B" stopOpacity="0" /><Stop offset="1" stopColor="#10141B" stopOpacity="1" /></LinearGradient>
+          <LinearGradient id="ps" x1="0" y1="0" x2="1" y2="0"><Stop offset="0" stopColor="#10141B" stopOpacity="1" /><Stop offset="0.22" stopColor="#10141B" stopOpacity="0" /><Stop offset="0.78" stopColor="#10141B" stopOpacity="0" /><Stop offset="1" stopColor="#10141B" stopOpacity="1" /></LinearGradient>
+        </Defs>
+        <Rect width={w} height={bh} fill="url(#ps)" /><Rect width={w} height={bh} fill="url(#pf)" />
+        <SvgText x={w * 0.06} y={bh * 0.78} fill={STEEL} fontSize="10" fontFamily={F.monoBold} letterSpacing="3">{p.year}</SvgText>
+        <SvgText x={w * 0.06} y={bh * 0.78 + 18} fill="#EDE6D4" fontSize="15" fontFamily={F.title}>{p.label}</SvgText>
+      </Svg>
+    </View>
+  );
+}
+
 /** Fond défilant. `strength` règle la visibilité (0.1 discret → 0.6 mis en avant). */
 export function Chronicle({ strength = 0.4 }: { strength?: number }) {
   const { width, height } = useLayout();
@@ -243,9 +263,7 @@ export function Chronicle({ strength = 0.4 }: { strength?: number }) {
       <Animated.View style={{ position: "absolute", left: 0, top: 0, width: w, transform: [{ translateY: reduced ? -h * 0.4 : y }] }}>
         <Scene w={w} h={h} phase={phase} />
         <View style={{ marginTop: -1 }}><Scene w={w} h={h} phase={phase} /></View>
-        {PHOTOS.map((p, i) => (
-          <Image key={i} source={p.src} resizeMode="cover" style={{ position: "absolute", left: 0, width: w, top: ((i + 0.5) / PHOTOS.length) * h * 2 - 160, height: 320, opacity: 0.6 }} />
-        ))}
+        {[0, 1].map((k) => PHOTOS.map((p, i) => <PhotoBand key={`${k}-${i}`} p={p} w={w} top={k * h + ((i + 0.5) / PHOTOS.length) * h - 190} />))}
       </Animated.View>
     </View>
   );
