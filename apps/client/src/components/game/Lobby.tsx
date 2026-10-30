@@ -1,3 +1,4 @@
+import { InvitePanel } from "../InvitePanel";
 import { useState } from "react";
 import { Platform, Pressable, Share, Text, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
@@ -58,7 +59,8 @@ export function Lobby({ sessionId, lobby, connected }: { sessionId: string; lobb
               <Btn small label={copied ? "Copié" : "Copier"} onPress={copy} variant="ghost" />
               <Btn small label="Partager" onPress={share} variant="ghost" />
             </View>
-            <Body muted style={{ fontSize: 13 }}>La session n'apparaît dans aucun catalogue public : seules les personnes disposant du code peuvent la rejoindre.</Body>
+            <Body muted style={{ fontSize: 13 }}>La session n'apparaît dans aucun catalogue public : seules les personnes disposant du code ou d'une invitation peuvent la rejoindre.</Body>
+            {s.isCreator ? <InvitePanel sessionId={sessionId} /> : null}
           </Panel>
           <Panel title="État de préparation" style={{ flex: 1 }}>
             <View style={{ flexDirection: "row", gap: S(6) }}>

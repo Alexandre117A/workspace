@@ -181,7 +181,7 @@ function GlobeCanvas({ size, reduced }: { size: number; reduced: boolean }) {
 }
 
 /** Globe fixe pour mobile natif (sans animation). */
-function StaticGlobe({ size }: { size: number }) {
+export function StaticGlobe({ size }: { size: number }) {
   const world = useWorld("110m");
   const d = useMemo(() => {
     if (!world) return null;

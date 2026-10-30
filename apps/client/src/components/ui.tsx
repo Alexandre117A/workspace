@@ -95,26 +95,26 @@ export function Btn({ label, onPress, variant = "primary", disabled, busy, style
   );
 }
 
-export function Field(props: TextInputProps & { label?: string; hint?: string; big?: boolean }) {
-  const { label, hint, big, style, ...rest } = props;
+export function Field(props: TextInputProps & { label?: string; hint?: string; big?: boolean; light?: boolean }) {
+  const { label, hint, big, light, style, ...rest } = props;
   const [focus, setFocus] = useState(false);
   return (
     <View style={{ gap: 6 }}>
-      {label ? <Label>{label}</Label> : null}
+      {label ? (light ? <Text style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 2, color: "#4B5866", textTransform: "uppercase" }}>{label}</Text> : <Label>{label}</Label>) : null}
       <TextInput
-        placeholderTextColor={C.faint}
+        placeholderTextColor={light ? "#8A8F96" : C.faint}
         onFocus={() => setFocus(true)}
         onBlur={() => setFocus(false)}
         multiline={big}
         textAlignVertical={big ? "top" : "center"}
         style={[{
-          fontFamily: big ? F.sans : F.sansMed, fontSize: big ? 17 : 16, lineHeight: big ? 26 : undefined, color: C.text, backgroundColor: C.panel,
-          borderWidth: 1, borderColor: focus ? C.brass : C.line, paddingHorizontal: 14, paddingVertical: 12, minHeight: big ? 200 : 48,
+          fontFamily: big ? F.sans : F.sansMed, fontSize: big ? 17 : 16, lineHeight: big ? 26 : undefined, color: light ? "#1B2430" : C.text, backgroundColor: light ? "#FFFFFF" : C.panel,
+          borderWidth: 1, borderColor: focus ? C.brass : light ? "#B9AE92" : C.line, paddingHorizontal: 14, paddingVertical: 12, minHeight: big ? 200 : 48,
           ...({ outlineStyle: "none" } as any),
         }, style]}
         {...rest}
       />
-      {hint ? <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>{hint}</Text> : null}
+      {hint ? <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: light ? "#6B6A66" : C.muted }}>{hint}</Text> : null}
     </View>
   );
 }

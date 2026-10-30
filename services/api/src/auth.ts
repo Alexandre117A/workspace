@@ -172,7 +172,7 @@ export class AuthService {
     return {
       id: row.id, email: row.email, displayName: row.display_name, role: row.role, isGuest: row.is_guest, createdAt: row.created_at,
       emailVerified: !!row.email_verified_at, avatarColor: AVATARS.includes(prefs.avatarColor) ? prefs.avatarColor : "navy",
-      notifications: { invitations: prefs.notifications?.invitations !== false, product: prefs.notifications?.product === true },
+      notifications: { invitations: prefs.notifications?.invitations !== false, product: prefs.notifications?.product === true }, discoverable: prefs.discoverable !== false,
       mail: { configured: this.mailer.configured }, requireVerified: config.requireVerified,
     };
   }
@@ -250,6 +250,7 @@ export class AuthService {
     const prefs = { ...(row?.prefs ?? {}) };
     if (p.avatarColor) prefs.avatarColor = p.avatarColor;
     if (p.notifications) prefs.notifications = { ...(prefs.notifications ?? {}), ...p.notifications };
+    if (p.discoverable !== undefined) prefs.discoverable = p.discoverable;
     await this.db.query("UPDATE users SET prefs = $1 WHERE id = $2", [prefs, user.id]);
     const fresh = await this.me({ ...user, displayName: p.pseudonym ?? user.displayName });
     return { user: fresh, token: this.sign({ ...user, displayName: fresh.displayName } as AuthUser) };

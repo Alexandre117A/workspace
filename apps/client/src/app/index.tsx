@@ -5,12 +5,14 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { isValidJoinCode } from "@geonex/shared";
 import { WorldBuildArt, ContemporaryArt, HistoricalArt } from "../atlas/home/ModeArt";
 import { Hero, JoinPanel } from "../atlas/home/HomeSections";
+import { Pillars } from "../atlas/home/Pillars";
 import { ScenarioSection } from "../atlas/home/ScenarioSection";
 import { CatalogEntry, useCatalog } from "../atlas/home/world";
 import { Wordmark } from "../components/Brand";
 import { Intro } from "../components/Intro";
 import { Features } from "../components/Features";
-import { Body, Label, Screen, useLayout } from "../components/ui";
+import { PageScreen } from "../components/Page";
+import { Body, Label, useLayout } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { useConfig } from "../lib/hooks";
@@ -124,7 +126,7 @@ export default function Home() {
 
   return (
     <View style={{ flex: 1 }}>
-    <Screen chronicle={0.9} scrollRef={scroller}>
+    <PageScreen max={1180} chronicle={0.9} scrollRef={scroller}>
       {cfg?.features.preview ? (
         <View accessibilityRole="alert" style={{ marginBottom: S(4), flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: S(3), backgroundColor: "#F3F0E9", borderLeftWidth: 4, borderLeftColor: C.brass, paddingVertical: 10, paddingHorizontal: S(4) }}>
           <Text style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 2, color: "#7A6428", textTransform: "uppercase" }}>Version d'essai</Text>
@@ -134,14 +136,6 @@ export default function Home() {
           ) : null}
         </View>
       ) : null}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: S(phone ? 8 : 12) }}>
-        <Wordmark size={phone ? 16 : 19} />
-        <View style={{ flexDirection: "row", gap: S(4), alignItems: "center" }}>
-          {user ? <Link href="/archives"><Label>Archives</Label></Link> : null}
-          <Link href={user ? "/account" : "/auth"}><Label color={C.brass}>{user ? user.displayName : "Se connecter"}</Label></Link>
-        </View>
-      </View>
-
       <Hero width={inner} desktop={desktop} phone={phone} onExplore={() => scroller.current?.scrollTo({ y: Math.max(0, scenariosY - 16), animated: true })} onCreate={() => router.push(go("/create") as any)} />
 
       <View style={{ gap: S(3) }}>
@@ -155,7 +149,12 @@ export default function Home() {
 
       <View style={section} onLayout={(e) => setScenariosY(e.nativeEvent.layout.y)}>
         <ScenarioSection width={inner} cols={desktop ? 3 : tablet ? 2 : 1} go={go} />
+        <Pressable accessibilityRole="link" onPress={() => router.push("/library")} style={{ alignSelf: "flex-start", marginTop: S(4), borderWidth: 1, borderColor: C.brass, paddingVertical: 12, paddingHorizontal: 18 }}>
+          <Text style={{ fontFamily: F.monoBold, fontSize: 11.5, letterSpacing: 2, color: C.brass }}>OUVRIR LE CENTRE DES SCÉNARIOS →</Text>
+        </Pressable>
       </View>
+
+      <View style={section}><Pillars width={inner} desktop={desktop} /></View>
 
       <View style={section}>
         <JoinPanel code={code} setCode={setCode} onJoin={join} joining={joining} error={joinError} phone={phone} />
@@ -163,14 +162,10 @@ export default function Home() {
 
       <View style={{ marginTop: S(12) }}><Features /></View>
 
-      <View style={{ marginTop: S(8), flexDirection: "row", flexWrap: "wrap", gap: S(4), justifyContent: "space-between" }}>
-        {user?.role === "owner" ? (
-          <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>
-          {error ? "Serveur injoignable" : cfg ? `Moteur ${cfg.features.engine ? "en ligne" : "injoignable"}` : "…"}
-        </Text>) : <View />}
-        <Pressable onPress={() => router.push("/credits")} accessibilityRole="link"><Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>GEONEX · gratuit · sans publicité · crédits des images</Text></Pressable>
-      </View>
-    </Screen>
+      {user?.role === "owner" ? (
+        <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11, marginTop: S(6) }}>{error ? "Serveur injoignable" : cfg ? `Moteur ${cfg.features.engine ? "en ligne" : "injoignable"}` : "…"}</Text>
+      ) : null}
+    </PageScreen>
     {intro ? <Intro onDone={() => setIntro(false)} /> : null}
     </View>
   );

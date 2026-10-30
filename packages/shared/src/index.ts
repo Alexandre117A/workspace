@@ -306,6 +306,7 @@ export const profileSchema = z.object({
   pseudonym: pseudonymField.optional(),
   avatarColor: z.enum(["navy", "atlas", "brass", "red", "stone"]).optional(),
   notifications: z.object({ invitations: z.boolean().optional(), product: z.boolean().optional() }).optional(),
+  discoverable: z.boolean().optional(),
 });
 export const emailChangeSchema = z.object({ email: emailField, password: z.string().min(1).max(200) });
 export const passwordChangeSchema = z.object({ current: z.string().min(1).max(200), next: passwordField });

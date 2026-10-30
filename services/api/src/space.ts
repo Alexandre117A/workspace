@@ -196,6 +196,15 @@ export class SpaceService {
     return { sessionId: res.sessionId };
   }
 
+  /** Pastilles de la navigation : invitations en attente et notifications non lues (requête légère). */
+  async badge(user: AuthUser) {
+    const [i, n] = await Promise.all([
+      this.db.one("SELECT count(*) AS n FROM invitations WHERE to_user = $1 AND status = 'pending' AND expires_at > now()", [user.id]),
+      this.db.one("SELECT count(*) AS n FROM notifications WHERE user_id = $1 AND read_at IS NULL", [user.id]),
+    ]);
+    return { invitations: Number(i?.n ?? 0), unread: Number(n?.n ?? 0) };
+  }
+
   async readAll(user: AuthUser) {
     await this.db.query("UPDATE notifications SET read_at = now() WHERE user_id = $1 AND read_at IS NULL", [user.id]);
     return { ok: true };
@@ -206,6 +215,11 @@ export class SpaceService {
 @UseGuards(AuthGuard)
 export class SpaceController {
   constructor(private readonly svc: SpaceService) {}
+
+  @Get("badge")
+  badge(@CurrentUser() user: AuthUser) {
+    return this.svc.badge(user);
+  }
 
   @Get("overview")
   overview(@CurrentUser() user: AuthUser) {

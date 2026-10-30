@@ -12,15 +12,20 @@ import { CatalogEntry, useCatalog, useWorld } from "./world";
 const norm = (id: unknown) => String(id).padStart(3, "0");
 const FADE: any = Platform.OS === "web" ? { transitionProperty: "transform, opacity, border-color", transitionDuration: "300ms", transitionTimingFunction: "ease" } : {};
 
+export interface ThumbData { theatre: { iso_n3: string[]; center: [number, number] | null; basemap: string; atlas_style: string }; zones: { lat: number | null; lon: number | null }[]; actors: { lat: number | null; lon: number | null }[] }
+export function thumbOf(e: { theatre: any; actors: any[] }): ThumbData {
+  return { theatre: e.theatre, zones: (e.theatre.zones ?? []).map((z: any) => ({ lat: z.lat, lon: z.lon })), actors: e.actors.map((a: any) => ({ lat: a.region?.lat ?? null, lon: a.region?.lon ?? null })) };
+}
+
 /** Vignette cartographique d'une fiche : fond choisi par le moteur (côtes seules avant la guerre froide), repères réels du scénario. */
-function ThumbMap({ e, width, height, hovered }: { e: CatalogEntry; width: number; height: number; hovered: boolean }) {
+export function ThumbMap({ e, width, height, hovered }: { e: ThumbData; width: number; height: number; hovered: boolean }) {
   const world = useWorld();
   const st = MAP_STYLES[(e.theatre.atlas_style as keyof typeof MAP_STYLES) ?? "modern"] ?? MAP_STYLES.modern;
   const geo = useMemo(() => {
     if (!world) return null;
     const focus = new Set(e.theatre.iso_n3.map(norm));
     const coords: [number, number][] = [];
-    e.zones.forEach((z) => z.region.lon != null && z.region.lat != null && coords.push([z.region.lon, z.region.lat]));
+    e.zones.forEach((z) => z.lon != null && z.lat != null && coords.push([z.lon, z.lat]));
     const fit: any = { type: "FeatureCollection", features: world.countries.filter((f: any) => focus.has(norm(f.id))).map(mainland) };
     if (coords.length) fit.features.push({ type: "Feature", properties: {}, geometry: { type: "MultiPoint", coordinates: coords } });
     const projection = geoMercator();
@@ -33,8 +38,8 @@ function ThumbMap({ e, width, height, hovered }: { e: CatalogEntry; width: numbe
     return {
       land: e.theatre.basemap === "land" ? path(world.land) ?? "" : null,
       countries: e.theatre.basemap === "borders" ? world.countries.filter(visible).map((f: any) => ({ id: String(f.id), d: path(f) ?? "", own: focus.has(norm(f.id)) })).filter((c) => c.d) : [],
-      zones: e.zones.map((z) => ({ id: z.id, xy: z.region.lon != null && z.region.lat != null ? projection([z.region.lon, z.region.lat]) : null })).filter((z) => z.xy) as { id: string; xy: [number, number] }[],
-      actors: e.actors.map((a) => ({ id: a.id, camp: a.camp, xy: a.regions[0]?.lon != null ? projection([a.regions[0].lon!, a.regions[0].lat!]) : null })).filter((a) => a.xy && a.xy[0] > 4 && a.xy[0] < width - 4 && a.xy[1] > 4 && a.xy[1] < height - 4) as { id: string; camp: string; xy: [number, number] }[],
+      zones: e.zones.map((z, i) => ({ id: String(i), xy: z.lon != null && z.lat != null ? projection([z.lon, z.lat]) : null })).filter((z) => z.xy) as { id: string; xy: [number, number] }[],
+      actors: e.actors.map((a, i) => ({ id: String(i), xy: a.lon != null && a.lat != null ? projection([a.lon, a.lat]) : null })).filter((a) => a.xy && a.xy[0] > 4 && a.xy[0] < width - 4 && a.xy[1] > 4 && a.xy[1] < height - 4) as { id: string; xy: [number, number] }[],
     };
   }, [world, e, width, height]);
   return (
@@ -67,7 +72,7 @@ function ScenarioCard({ e, width, onOpen }: { e: CatalogEntry; width: number; on
       style={({ hovered, pressed }: any) => [{ width, borderWidth: 1, borderColor: hovered ? m.accent : C.lineHi, borderTopWidth: 3, borderTopColor: m.accent, backgroundColor: pressed ? C.panelHi : C.panel, overflow: "hidden" }, FADE, hovered ? { transform: [{ scale: 1.015 }] } : null]}>
       {({ hovered }: any) => (
         <>
-          <ThumbMap e={e} width={width - 2} height={Math.round(width * 0.46)} hovered={!!hovered} />
+          <ThumbMap e={{ theatre: e.theatre, zones: e.zones.map((z) => ({ lat: z.region.lat, lon: z.region.lon })), actors: e.actors.map((a) => ({ lat: a.regions[0]?.lat ?? null, lon: a.regions[0]?.lon ?? null })) }} width={width - 2} height={Math.round(width * 0.46)} hovered={!!hovered} />
           <View style={{ padding: S(4), gap: S(2), flex: 1 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
               <Text style={{ fontFamily: F.monoBold, fontSize: 9.5, letterSpacing: 2, color: m.accent, textTransform: "uppercase" }}>{m.code} · {e.mode === "historical" ? "Historique" : "Contemporain"}</Text>
