@@ -37,6 +37,22 @@ class MetaController {
     return readFileSync(require.resolve(`world-atlas/${name}.json`), "utf8");
   }
 
+  /** Fiches de scénarios de l'accueil : construites par le moteur à partir de scénarios réels (jamais de texte écrit à la main). */
+  private catalogCache: { at: number; data: unknown } | null = null;
+
+  @Get("catalog")
+  @Header("cache-control", "public, max-age=600")
+  async catalog() {
+    if (this.catalogCache && Date.now() - this.catalogCache.at < 600_000) return this.catalogCache.data;
+    try {
+      const data = await this.engine.get("/catalog");
+      this.catalogCache = { at: Date.now(), data };
+      return data;
+    } catch {
+      return { scenarios: [], unavailable: true };
+    }
+  }
+
   /** Fonctionnalités réellement disponibles : le client n'affiche jamais une intégration absente comme active. */
   @Get("config")
   async features() {

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import atlas
 from . import cards as cards_mod
 from .actions import CATALOG
 from . import dynamics
@@ -40,7 +41,7 @@ def public_view(world: WorldState) -> dict[str, Any]:
     return {
         "level": "public",
         "setting": {"mode": s.mode, "title": s.title, "topic": s.topic, "start_label": s.start_label, "era": s.era,
-                    "theatre": s.theatre.model_dump(), "camps": s.camps, "notes": s.universe_notes if s.mode != "fictional" else "", "special_rules": s.special_rules, "knowledge_cutoff": s.knowledge_cutoff},
+                    "theatre": atlas.theatre_view(s), "era_label": atlas.era_label(s), "start_date": s.start_date, "tempo": s.tempo, "camps": s.camps, "notes": s.universe_notes if s.mode != "fictional" else "", "special_rules": s.special_rules, "knowledge_cutoff": s.knowledge_cutoff},
         "round": world.round,
         "rounds_planned": world.plan.rounds_planned,
         "sim_time": sim_time_label(world),
@@ -120,6 +121,7 @@ def president_view(world: WorldState) -> dict[str, Any]:
     view["troubled"] = [{"id": a.id, "name": a.name, "stability": a.stability} for a in world.actors.values() if a.stability < 35 or a.capitals.total() < 0.7 * a.initial_capitals.total()]
     view["all_events"] = [{"id": e.id, "round": e.round, "kind": e.kind, "title": e.title, "text": e.text, "scope": e.scope} for e in world.events][-60:]
     view["wars"] = [[r.a, r.b] for r in world.relations.values() if r.at_war]
+    view["zones_control"] = {z.id: {k: round(v, 2) for k, v in z.control.items()} for z in world.zones}
     view["pending_operations"] = sum(1 for o in world.operations if o.status == "pending")
     view["communiques_all"] = [{"id": c.id, "round": c.round, "title": c.title, "per_actor": c.per_actor, "delivered": c.delivered, "origin": c.origin}
                                for c in world.communiques if c.delivered]

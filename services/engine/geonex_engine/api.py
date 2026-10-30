@@ -12,7 +12,7 @@ from typing import Any, Optional
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
-from . import ai, archive, cards, jobs, questions, research, rome, session as session_mod, views
+from . import ai, archive, cards, catalog as catalog_mod, jobs, questions, research, rome, session as session_mod, views
 from .actions import CATALOG, NEEDS_ARBITRATION, Decision, assess_decision, validate
 from .probability import assess
 from .ai.tasks import analyse_request
@@ -50,6 +50,11 @@ def _dump(world: WorldState) -> dict[str, Any]:
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {"status": "ok", "service": "geonex-engine", "ai": ai.status(), "research": research.enabled(), "min_duration": MIN_DURATION_MINUTES}
+
+
+@app.get("/catalog", dependencies=[Depends(_auth)])
+def catalog() -> dict[str, Any]:
+    return {"scenarios": catalog_mod.catalog()}
 
 
 @app.get("/usage", dependencies=[Depends(_auth)])

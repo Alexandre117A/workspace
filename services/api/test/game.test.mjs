@@ -55,6 +55,20 @@ test("auth, rôles et administration", async () => {
   assert.equal(cfg.data.minDurationMinutes, 30);
 });
 
+test("catalogue public des scénarios : métadonnées réelles, sans secret", async () => {
+  const { api } = stack;
+  const r = await api("/catalog");
+  assert.equal(r.status, 200);
+  const ids = r.data.scenarios.map((s) => s.id);
+  for (const id of ["cuba-1962", "egypte-1799", "cent-ans-1415", "taiwan"]) assert.ok(ids.includes(id), `fiche manquante : ${id}`);
+  for (const s of r.data.scenarios) {
+    assert.ok(s.actors.length && s.zones.length && s.summary && s.theatre.name, s.id);
+    assert.ok(!/secrets|red_lines|objectives/.test(JSON.stringify(s)), "le catalogue ne doit exposer aucune donnée privée");
+  }
+  const medieval = r.data.scenarios.find((s) => s.id === "cent-ans-1415");
+  assert.equal(medieval.theatre.basemap, "land");
+});
+
 test("parcours complet d'une partie à trois équipes", { timeout: 240000 }, async () => {
   const { api, base } = stack;
   const pres = (await api("/auth/guest", { method: "POST", body: { displayName: "Présidente" } })).data;

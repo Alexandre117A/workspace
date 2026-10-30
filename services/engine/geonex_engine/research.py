@@ -8,7 +8,9 @@ scénario indique alors explicitement que le contexte n'a pas été vérifié.
 """
 from __future__ import annotations
 
+import contextlib
 import os
+import threading
 import time
 from datetime import datetime, timezone
 from typing import Optional
@@ -68,7 +70,22 @@ def _explain(exc: Exception, service: str) -> str:
     return f"Recherche {service} indisponible : {exc.__class__.__name__}"
 
 
+_local = threading.local()
+
+
+@contextlib.contextmanager
+def offline():
+    """Désactive la recherche externe pour le seul thread appelant (catalogue : jamais de réseau pour une vitrine)."""
+    _local.off = True
+    try:
+        yield
+    finally:
+        _local.off = False
+
+
 def enabled() -> bool:
+    if getattr(_local, "off", False):
+        return False
     return os.environ.get("GEONEX_RESEARCH", "on").lower() not in {"off", "0", "false", "no"}
 
 
