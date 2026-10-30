@@ -11,7 +11,7 @@ const cache: Record<string, Topo> = {};
 const pending: Record<string, Promise<Topo>> = {};
 
 /** Frontières réelles Natural Earth (domaine public), chargées à la demande depuis l'API. */
-function useTopo(name: "countries-110m" | "countries-50m") {
+export function useTopo(name: "countries-110m" | "countries-50m") {
   const [topo, setTopo] = useState<Topo | null>(cache[name] ?? null);
   useEffect(() => {
     if (cache[name]) return;
@@ -22,7 +22,7 @@ function useTopo(name: "countries-110m" | "countries-50m") {
 }
 
 /** Garde la partie principale d'un pays (ex. France métropolitaine + Corse, sans les territoires lointains). */
-function mainland(f: any) {
+export function mainland(f: any) {
   if (f.geometry?.type !== "MultiPolygon") return f;
   const polys = f.geometry.coordinates.map((c: any) => ({ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: c } }));
   const main = polys.reduce((a: any, b: any) => (geoArea(b) > geoArea(a) ? b : a));

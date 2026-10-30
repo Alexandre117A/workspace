@@ -1,12 +1,16 @@
-import { useState } from "react";
-import { Image, Platform, Pressable, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import { Image, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
-import { formatJoinCode, isValidJoinCode } from "@geonex/shared";
+import { isValidJoinCode } from "@geonex/shared";
+import { ConstructionArt, ContemporaryArt, HistoricalArt } from "../atlas/home/ModeArt";
+import { Hero, JoinPanel } from "../atlas/home/HomeSections";
+import { ScenarioSection } from "../atlas/home/ScenarioSection";
+import { CatalogEntry, useCatalog } from "../atlas/home/world";
 import { Wordmark } from "../components/Brand";
 import { Intro } from "../components/Intro";
 import { Features } from "../components/Features";
-import { Body, Btn, Field, Label, Notice, Screen, useLayout } from "../components/ui";
+import { Body, Label, Screen, useLayout } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { useConfig } from "../lib/hooks";
@@ -21,6 +25,9 @@ const LOGOS = {
   historical: { src: require("../../assets/modes/mode2.png"), halo: "#D9AE4E", scale: 1 },
   fictional: { src: require("../../assets/modes/mode3.png"), halo: "#6F9FEF", scale: 1 },
 } as const;
+
+/** Concept visuel de chaque carte, affiché en surimpression discrète (le titre et la description d'origine restent inchangés). */
+const CONCEPTS: Record<ModeKey, string> = { contemporary: "Le monde sous tension", historical: "Les frontières du temps", fictional: "Construire un monde" };
 
 // Survol (web) : transitions douces ; sur mobile, aucune transition et aucun survol.
 const FADE: any = Platform.OS === "web" ? { transitionProperty: "transform, opacity, filter", transitionDuration: "320ms", transitionTimingFunction: "ease" } : {};
@@ -51,21 +58,29 @@ function ModeLogo({ mode, size, hovered }: { mode: ModeKey; size: number; hovere
   );
 }
 
-function ModeEntry({ mode, href, wide }: { mode: ModeKey; href: string; wide: boolean }) {
+function ModeEntry({ mode, href, wide, entries }: { mode: ModeKey; href: string; wide: boolean; entries: CatalogEntry[] }) {
   const m = MODE_STYLE[mode];
+  const [box, setBox] = useState({ w: 0, h: 0 });
   return (
-    <Pressable accessibilityRole="link" accessibilityLabel={m.label} onPress={() => router.push(href as any)}
+    <Pressable accessibilityRole="link" accessibilityLabel={`${m.label}. ${CONCEPTS[mode]}`} onPress={() => router.push(href as any)}
+      onLayout={(e: any) => setBox({ w: Math.round(e.nativeEvent.layout.width), h: Math.round(e.nativeEvent.layout.height) })}
       style={({ hovered, pressed }: any) => ({
-        flex: wide ? 1 : undefined, minHeight: wide ? 300 : 150, borderWidth: 1, borderColor: hovered ? m.accent : C.line, backgroundColor: pressed ? C.panelHi : C.panel,
+        flex: wide ? 1 : undefined, minHeight: wide ? 310 : 190, borderWidth: 1, borderColor: hovered ? m.accent : C.line, backgroundColor: pressed ? C.panelHi : C.panel,
         padding: S(5), justifyContent: "space-between", flexDirection: wide ? "column" : "row", gap: S(4), overflow: "hidden",
       })}>
       {({ hovered }: any) => (
         <>
+          {box.w > 0 ? (
+            mode === "contemporary" ? <ContemporaryArt width={box.w} height={box.h} hovered={!!hovered} entries={entries} />
+              : mode === "historical" ? <HistoricalArt width={box.w} height={box.h} hovered={!!hovered} />
+              : <ConstructionArt width={box.w} height={box.h} hovered={!!hovered} />
+          ) : null}
           <View style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 2, backgroundColor: m.accent, opacity: 0.8 }} />
-          <View style={{ flex: wide ? undefined : 1, gap: S(3) }}>
+          <View style={{ flex: wide ? undefined : 1, gap: S(3), maxWidth: wide ? "78%" : "72%" }}>
             <Label color={m.accent}>{m.code}</Label>
             <Text style={{ fontFamily: F.title, fontSize: wide ? 30 : 26, color: C.text, lineHeight: wide ? 34 : 30 }}>{m.label}</Text>
             <Body muted style={{ fontSize: 14 }}>{m.tagline}</Body>
+            <Text style={{ fontFamily: F.titleItalic, fontSize: 14, color: m.accent, opacity: 0.9 }}>{CONCEPTS[mode]}</Text>
           </View>
           {/* Emplacement réservé : même encombrement que l'ancien pictogramme, la mise en page des cartes ne bouge pas. */}
           <View style={{ width: wide ? 96 : 72, height: wide ? 96 : 72 }} />
@@ -79,11 +94,14 @@ function ModeEntry({ mode, href, wide }: { mode: ModeKey; href: string; wide: bo
 export default function Home() {
   const { user } = useAuth();
   const { cfg, error } = useConfig();
-  const { phone, desktop } = useLayout();
+  const { width, phone, tablet, desktop } = useLayout();
+  const { entries } = useCatalog();
   const [code, setCode] = useState("");
   const [joining, setJoining] = useState(false);
   const [intro, setIntro] = useState(true);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const scroller = useRef<any>(null);
+  const [scenariosY, setScenariosY] = useState(0);
 
   const join = async () => {
     setJoinError(null);
@@ -101,11 +119,13 @@ export default function Home() {
   };
 
   const go = (path: string) => (user ? path : `/auth?next=${encodeURIComponent(path)}`);
+  const inner = Math.min(width, 1180) - S(8);
+  const section = { marginTop: S(phone ? 12 : 18) } as const;
 
   return (
     <View style={{ flex: 1 }}>
-    <Screen chronicle={0.9}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: S(phone ? 8 : 14) }}>
+    <Screen chronicle={0.9} scrollRef={scroller}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: S(phone ? 8 : 12) }}>
         <Wordmark size={phone ? 16 : 19} />
         <View style={{ flexDirection: "row", gap: S(4), alignItems: "center" }}>
           {user ? <Link href="/archives"><Label>Archives</Label></Link> : null}
@@ -113,37 +133,26 @@ export default function Home() {
         </View>
       </View>
 
-      <View style={{ gap: S(4), marginBottom: S(phone ? 8 : 12), maxWidth: 820 }}>
-        <Label color={C.brass}>Cellule de crise virtuelle · multijoueur</Label>
-        <Text style={{ fontFamily: F.title, fontSize: phone ? 40 : desktop ? 66 : 54, lineHeight: phone ? 44 : desktop ? 70 : 58, color: C.text }}>
-          Concevez et vivez des simulations géopolitiques.
-        </Text>
-        <Body muted style={{ fontSize: phone ? 15 : 17, lineHeight: phone ? 22 : 26, maxWidth: 660 }}>
-          Chaque équipe incarne un acteur, négocie, engage ses ressources et fait évoluer un monde qui réagit. L'information est imparfaite, les acteurs
-          non joués poursuivent leurs propres intérêts, et chaque partie devient une histoire nouvelle.
-        </Body>
-      </View>
+      <Hero width={inner} desktop={desktop} phone={phone} onExplore={() => scroller.current?.scrollTo({ y: Math.max(0, scenariosY - 16), animated: true })} onCreate={() => router.push(go("/create") as any)} />
 
-      <View style={{ flexDirection: desktop ? "row" : "column", gap: S(4) }}>
-        <ModeEntry mode="contemporary" href={go("/contemporary")} wide={desktop} />
-        <ModeEntry mode="historical" href={go("/historical")} wide={desktop} />
-        <ModeEntry mode="fictional" href={go("/create")} wide={desktop} />
-      </View>
-
-      <View style={{ marginTop: S(6), borderWidth: 1, borderColor: C.lineHi, backgroundColor: C.bg2, padding: S(5), flexDirection: phone ? "column" : "row", gap: S(4), alignItems: phone ? "stretch" : "flex-end" }}>
-        <View style={{ flex: 1, gap: S(2) }}>
-          <Label color={C.brass}>Rejoindre une session</Label>
-          <Body muted>Entrez le code de participation transmis par le Président de séance.</Body>
+      <View style={{ gap: S(3) }}>
+        <Label color={C.brass}>Choisir un mode de simulation</Label>
+        <View style={{ flexDirection: desktop ? "row" : "column", gap: S(4) }}>
+          <ModeEntry mode="contemporary" href={go("/contemporary")} wide={desktop} entries={entries} />
+          <ModeEntry mode="historical" href={go("/historical")} wide={desktop} entries={entries} />
+          <ModeEntry mode="fictional" href={go("/create")} wide={desktop} entries={entries} />
         </View>
-        <View style={{ flex: phone ? undefined : 1, gap: S(2) }}>
-          <Field value={code} onChangeText={(t) => setCode(formatJoinCode(t))} placeholder="XXXXX-XXXXX" autoCapitalize="characters" autoCorrect={false}
-            onSubmitEditing={join} style={{ fontFamily: F.monoBold, letterSpacing: 4, fontSize: 18 }} accessibilityLabel="Code de participation" />
-          {joinError ? <Notice tone="error">{joinError}</Notice> : null}
-        </View>
-        <Btn label="Rejoindre" onPress={join} busy={joining} />
       </View>
 
-      <View style={{ marginTop: S(10) }}><Features /></View>
+      <View style={section} onLayout={(e) => setScenariosY(e.nativeEvent.layout.y)}>
+        <ScenarioSection width={inner} cols={desktop ? 3 : tablet ? 2 : 1} go={go} />
+      </View>
+
+      <View style={section}>
+        <JoinPanel code={code} setCode={setCode} onJoin={join} joining={joining} error={joinError} phone={phone} />
+      </View>
+
+      <View style={{ marginTop: S(12) }}><Features /></View>
 
       <View style={{ marginTop: S(8), flexDirection: "row", flexWrap: "wrap", gap: S(4), justifyContent: "space-between" }}>
         {user?.role === "owner" ? (

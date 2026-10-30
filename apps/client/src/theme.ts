@@ -1,29 +1,47 @@
-/** Design system GEONEX : palette sombre institutionnelle, accents sobres et signifiants. */
+/** Palette officielle « Atlas stratégique » : les neuf couleurs de référence de la direction artistique. */
+export const A = {
+  night: "#0B1420",      // bleu nuit : fonds profonds
+  navy: "#10233D",       // bleu marine : conteneurs et panneaux
+  atlas: "#284D74",      // bleu atlas : cartographie et accents
+  institutional: "#41698B", // bleu institutionnel : éléments secondaires
+  ivory: "#F3F0E9",      // ivoire : surfaces claires
+  cream: "#FAF9F6",      // blanc cassé : fonds éditoriaux
+  stone: "#AEB6BE",      // gris pierre : métadonnées
+  brass: "#B89A5D",      // or laiton : accents historiques
+  deepRed: "#963F46",    // rouge profond : tensions et alertes
+};
+
+/** Design system GEONEX : alternance de bleu nuit, de panneaux marine et de surfaces ivoire. Les variantes « texte »
+ * (steel, red) sont éclaircies par rapport à la palette de référence pour garder un contraste lisible sur fond sombre. */
 export const C = {
-  bg: "#05070A",
-  bg2: "#090D12",
-  panel: "#0D1319",
-  panelHi: "#121A22",
-  line: "#1D2733",
-  lineHi: "#2D3B4B",
-  text: "#E7E0D1",
-  muted: "#8D949C",
-  faint: "#59616B",
-  brass: "#C6A35C",
-  brassDim: "#7E6739",
-  red: "#B6433A",
-  redDim: "#5E2420",
-  steel: "#7393B3",
-  steelDim: "#26364A",
-  land: "#0F1822",
-  landHi: "#1A2938",
-  green: "#6F9A6B",
-  amber: "#C98A34",
-  paper: "#EEE5D1",
-  paperDim: "#D9CDB2",
-  ink: "#1C1812",
-  inkSoft: "#4A4234",
-  overlay: "rgba(3,5,8,0.82)",
+  bg: A.night,
+  bg2: "#0F1C2E",
+  panel: A.navy,
+  panelHi: "#173250",
+  line: "#1F3A58",
+  lineHi: "#2F5780",
+  text: A.ivory,
+  muted: A.stone,
+  faint: "#8493A3",
+  brass: A.brass,
+  brassDim: "#7C6838",
+  red: "#CC6068",
+  redDeep: A.deepRed,
+  redDim: "#4A232B",
+  steel: "#7FA6CC",
+  steelDim: "#27496D",
+  institutional: A.institutional,
+  atlas: A.atlas,
+  land: "#13294A",
+  landHi: "#21456F",
+  green: "#78A57A",
+  amber: "#D09A45",
+  paper: A.ivory,
+  paperDim: "#E3DCCA",
+  cream: A.cream,
+  ink: "#1B2430",
+  inkSoft: "#4B5866",
+  overlay: "rgba(8,14,23,0.86)",
 };
 
 /** Identités des cinq cartes stratégiques. */

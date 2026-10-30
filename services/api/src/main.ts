@@ -3,6 +3,7 @@ import { Logger } from "@nestjs/common";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { NestFactory } from "@nestjs/core";
+import compression from "compression";
 import { AppModule } from "./app.module";
 import { config } from "./config";
 import { rateLimiter } from "./ratelimit";
@@ -11,6 +12,7 @@ export async function createApp() {
   const app = await NestFactory.create(AppModule, { logger: process.env.GEONEX_QUIET ? ["error", "warn"] : undefined });
   // Derrière le proxy de l'hébergeur : l'adresse du visiteur vient de X-Forwarded-For (un seul saut de confiance).
   (app.getHttpAdapter().getInstance() as any).set("trust proxy", 1);
+  app.use(compression()); // JavaScript, JSON et cartes : 3 à 4 fois moins d'octets sur l'offre gratuite
   app.use(rateLimiter());
   app.setGlobalPrefix("api");
   app.enableCors({ origin: config.corsOrigins.includes("*") ? true : config.corsOrigins, credentials: true });

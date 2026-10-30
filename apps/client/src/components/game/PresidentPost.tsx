@@ -3,7 +3,7 @@ import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PHASE_LABELS } from "@geonex/shared";
 import { Backdrop, Bar, Body, Btn, Chip, Field, Label, Notice, Panel, Sheet, Stepper, useLayout } from "../ui";
-import { GeoMap } from "../GeoMap";
+import { AtlasBoard, ContextStrip, useAtlas } from "../../atlas/AtlasWorkspace";
 import { Ack, fmtClock, remaining, useNow } from "../../lib/game";
 import { C, F, S } from "../../theme";
 import { RoundMark, TopBar } from "./chrome";
@@ -105,6 +105,7 @@ export function PresidentPost({ game, emit, title }: { game: any; emit: (e: stri
   const [speech, setSpeech] = useState(45);
   const [error, setError] = useState<string | null>(null);
   const { view, runtime, offset, lobby } = game;
+  const { ctx, previous } = useAtlas(view);
   if (!view || !runtime) return null;
   const tb = view.true_balance;
   const colors = [C.steel, C.red, C.brass, C.green];
@@ -194,17 +195,13 @@ export function PresidentPost({ game, emit, title }: { game: any; emit: (e: stri
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Backdrop dense />
       <SafeAreaView style={{ flex: 1 }}>
-        <TopBar title={`${title} · Présidence`} runtime={runtime} offset={offset} simTime={view.sim_time} connected={game.connected} />
+        <TopBar title={`${title} · Présidence`} runtime={runtime} offset={offset} simTime={view.sim_time} connected={game.connected} strip={ctx ? <ContextStrip ctx={ctx} runtime={runtime} /> : null} />
         <ScrollView contentContainerStyle={{ padding: S(4), gap: S(4), maxWidth: 1500, width: "100%", alignSelf: "center" }}>
           {!game.connected ? <Notice tone="warn">Connexion interrompue — reconnexion…</Notice> : null}
+          {ctx ? <AtlasBoard view={view} ctx={ctx} previous={previous} width={Math.min(width, 1500) - S(8)} /> : null}
           <View style={{ flexDirection: desktop ? "row" : "column", gap: S(4), alignItems: "flex-start" }}>
             <View style={{ width: colW, gap: S(4) }}>{controls}<Requests game={game} emit={emit} />{presence}</View>
             <View style={{ width: colW, gap: S(4) }}>
-              <View style={{ borderWidth: 1, borderColor: C.lineHi }}>
-                <GeoMap width={colW - 2} height={phone ? 200 : 260} focus={view.setting.theatre.iso_n3} center={view.setting.theatre.center}
-                  fictional={view.setting.theatre.map_kind === "fictional" ? view.setting.theatre.fictional_regions : null}
-                  points={view.zones.map((z: any) => ({ ...z.region, label: z.name, kind: "zone" as const }))} warning={view.setting.theatre.border_warning} />
-              </View>
               {balance}
             </View>
             <View style={{ width: colW, gap: S(4) }}>{actors}{feed}</View>

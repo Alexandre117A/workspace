@@ -21,6 +21,7 @@ import httpx
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "apps" / "client" / "assets" / "chronique"
 PER_QUERY = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 4
+THEME = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("theme=")), None)  # ex. « theme=cartes » : un seul thème
 ALLOWED = ("public domain", "cc0", "cc by", "cc-by", "pd-", "pdm", "attribution")
 REFUSED = ("nc", "nd", "non-free", "fair use", "copyrighted")
 
@@ -51,6 +52,12 @@ QUERIES = [
     ("Situation Room White House", "commandement", "Salle de crise"), ("Enigma machine cipher", "renseignement", "Machine Enigma"),
     ("radar station antenna", "renseignement", "Station radar"), ("satellite ground station", "renseignement", "Station au sol"),
     ("container ship Strait of Hormuz", "maritime", "Détroit d'Ormuz"), ("oil tanker at sea", "maritime", "Pétrolier"),
+    # Cartes anciennes (atlas, cartes marines, cartes de campagne) : fond cartographique de la Chronique
+    ("Ortelius Theatrum Orbis Terrarum map Europe", "cartes", "Atlas d'Ortelius"), ("Mercator Atlas Europe map 1595", "cartes", "Carte de l'Europe, Mercator"),
+    ("Blaeu Atlas Maior map France", "cartes", "Atlas Blaeu"), ("Carte de Cassini France", "cartes", "Carte de Cassini"),
+    ("portolan chart Mediterranean", "cartes", "Carte marine de la Méditerranée"), ("antique map Russia 18th century", "cartes", "Carte ancienne de la Russie"),
+    ("Napoleonic Europe map 1812", "cartes", "Europe napoléonienne"), ("map of Europe 1914 political", "cartes", "Europe en 1914"),
+    ("Cold War map NATO Warsaw Pact", "cartes", "Europe de la guerre froide"), ("old map Black Sea Ottoman Empire", "cartes", "Carte ancienne de la mer Noire"),
 ]
 
 
@@ -89,7 +96,7 @@ def main() -> int:
     have = {c["file"] for c in credits}
     added = 0
     with httpx.Client(headers=ua, timeout=60, follow_redirects=True) as client:
-        for q, theme, label in QUERIES:
+        for q, theme, label in [x for x in QUERIES if not THEME or x[1] == THEME]:
             r = client.get("https://commons.wikimedia.org/w/api.php", params={
                 "action": "query", "format": "json", "generator": "search", "gsrnamespace": 6, "gsrsearch": f"{q} filetype:bitmap",
                 "gsrlimit": 14, "prop": "imageinfo", "iiprop": "url|extmetadata|size|mime", "iiurlwidth": 1600})

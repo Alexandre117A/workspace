@@ -41,13 +41,13 @@ export function Backdrop({ dense = false, transparent = false }: { dense?: boole
   );
 }
 
-export function Screen({ children, scroll = true, style, max = 1180, chronicle = 0.7 }: { children: ReactNode; scroll?: boolean; style?: StyleProp<ViewStyle>; max?: number; chronicle?: number }) {
+export function Screen({ children, scroll = true, style, max = 1180, chronicle = 0.7, scrollRef }: { children: ReactNode; scroll?: boolean; style?: StyleProp<ViewStyle>; max?: number; chronicle?: number; scrollRef?: React.Ref<any> }) {
   const body = <View style={[{ width: "100%", maxWidth: max, alignSelf: "center", paddingHorizontal: S(4), paddingVertical: S(5) }, style]}>{children}</View>;
   return (
     <View style={{ flex: 1 }}>
       <Backdrop transparent />
       <SafeAreaView style={{ flex: 1 }}>
-        {scroll ? <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">{body}</ScrollView> : body}
+        {scroll ? <ScrollView ref={scrollRef} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">{body}</ScrollView> : body}
       </SafeAreaView>
     </View>
   );

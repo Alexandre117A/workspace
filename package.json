@@ -28,7 +28,8 @@
     "smoke": "node scripts/smoke.mjs",
     "start:prod": "node scripts/serve.mjs",
     "logos": "node scripts/engine.mjs ../../scripts/prepare-mode-logos.py",
-    "brand": "node scripts/engine.mjs ../../scripts/prepare-brand.py"
+    "brand": "node scripts/engine.mjs ../../scripts/prepare-brand.py",
+    "atlas:assets": "node scripts/engine.mjs ../../scripts/prepare-atlas-assets.py"
   },
   "engines": {
     "node": ">=20"

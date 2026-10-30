@@ -31,8 +31,8 @@ function Ship({ x, y, s, color = "#B9C4CF" }: { x: number; y: number; s: number;
   return (
     <G transform={`translate(${x},${y}) scale(${s})`}>
       <Polygon points="0,0 120,-6 168,0 120,6" fill="#1A2129" stroke={color} strokeWidth={0.8} />
-      <Polygon points="40,-6 92,-14 108,-6" fill="#141A20" stroke={color} strokeWidth={0.6} />
-      <Polygon points="40,6 92,14 108,6" fill="#141A20" stroke={color} strokeWidth={0.6} />
+      <Polygon points="40,-6 92,-14 108,-6" fill="#132337" stroke={color} strokeWidth={0.6} />
+      <Polygon points="40,6 92,14 108,6" fill="#132337" stroke={color} strokeWidth={0.6} />
       <Line x1="20" y1="0" x2="150" y2="0" stroke={color} strokeWidth={0.4} opacity={0.6} />
       <Circle cx="-4" cy="0" r="5" fill="#8FC7FF" opacity={0.7} />
       <Circle cx="-10" cy="0" r="9" fill="#8FC7FF" opacity={0.18} />
@@ -53,8 +53,8 @@ function Destroyer({ x, y, s, sail }: { x: number; y: number; s: number; sail?: 
   }
   return (
     <G transform={`translate(${x},${y}) scale(${s})`}>
-      <Path d="M0 0 L150 0 L140 10 L14 10 Z" fill="#0B0E11" stroke="#5E7186" strokeWidth={0.8} />
-      <Path d="M50 0 L56 -14 L82 -14 L86 -24 L94 -24 L96 -14 L110 -14 L114 0 Z" fill="#0B0E11" stroke="#5E7186" strokeWidth={0.8} />
+      <Path d="M0 0 L150 0 L140 10 L14 10 Z" fill="#0E1B2D" stroke="#5E7186" strokeWidth={0.8} />
+      <Path d="M50 0 L56 -14 L82 -14 L86 -24 L94 -24 L96 -14 L110 -14 L114 0 Z" fill="#0E1B2D" stroke="#5E7186" strokeWidth={0.8} />
       <Line x1="90" y1="-24" x2="90" y2="-40" stroke="#5E7186" strokeWidth={0.8} />
     </G>
   );

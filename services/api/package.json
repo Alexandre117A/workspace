@@ -17,6 +17,7 @@
     "@nestjs/platform-express": "11.2.8",
     "@nestjs/platform-socket.io": "11.2.8",
     "@nestjs/websockets": "11.2.8",
+    "compression": "^1.8.2",
     "jsonwebtoken": "^9.0.2",
     "livekit-server-sdk": "^2.13.0",
     "pg": "^8.16.0",
@@ -27,6 +28,7 @@
     "zod": "^4.1.0"
   },
   "devDependencies": {
+    "@types/compression": "^1.8.1",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.0",
     "@types/pg": "^8.15.0",

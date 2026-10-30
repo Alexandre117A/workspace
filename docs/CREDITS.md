@@ -1,13 +1,13 @@
 # Crédits des images
 
-Photographies du fond défilant. NASA : https://images.nasa.gov (généralement libres d'usage ; voir https://www.nasa.gov/nasa-brand-center/images-and-media/). Wikimedia Commons : licences libres, attribution ci-dessous.
+Photographies du fond défilant. Les images Wikimedia Commons sont sous licence libre (domaine public, CC0, CC BY, CC BY-SA) : respectez l'attribution ci-dessous.
 
 | Fichier | Légende | Auteur / crédit | Licence | Source |
 |---|---|---|---|---|
-| nasa-9905998.jpg | Station spatiale internationale | MSFC | Domaine public (NASA) | https://images.nasa.gov/details/9905998 |
-| nasa-200623_ISS_1.jpg | Orbite : un espace stratégique | JSC | Domaine public (NASA) | https://images.nasa.gov/details/200623_ISS_1 |
-| nasa-iss070e062746.jpg | La Terre de nuit | JSC | Domaine public (NASA) | https://images.nasa.gov/details/iss070e062746 |
-| nasa-s36-39-014.jpg | New York de nuit · mission STS-36 | JSC | Domaine public (NASA) | https://images.nasa.gov/details/s36-39-014 |
+| nasa-9905998.jpg | Station spatiale internationale | MSFC | domaine public (NASA) | https://images.nasa.gov/details/9905998 |
+| nasa-200623_ISS_1.jpg | Orbite : un espace stratégique | JSC | domaine public (NASA) | https://images.nasa.gov/details/200623_ISS_1 |
+| nasa-iss070e062746.jpg | La Terre de nuit | JSC | domaine public (NASA) | https://images.nasa.gov/details/iss070e062746 |
+| nasa-s36-39-014.jpg | New York de nuit · mission STS-36 | JSC | domaine public (NASA) | https://images.nasa.gov/details/s36-39-014 |
 | nasa-jsc2007e108498.jpg | STS-122 Flight Controller Justin Dithmer on Mechanical, Maintenance,… | NASA / JSC | Domaine public (NASA) | https://images.nasa.gov/details/jsc2007e108498 |
 | nasa-iss069e003900.jpg | Archive NASA | NASA / JSC | Domaine public (NASA) | https://images.nasa.gov/details/iss069e003900 |
 | nasa-jsc2000-07303.jpg | Archive NASA | NASA / JSC | Domaine public (NASA) | https://images.nasa.gov/details/jsc2000-07303 |
@@ -305,7 +305,7 @@ Photographies du fond défilant. NASA : https://images.nasa.gov (généralement 
 | commons-23-september-2016-security-council-meeting-at-united-nations.jpg | Conseil de sécurité de l'ONU | The Official CTBTO Photostream | cc by 2.0 | https://commons.wikimedia.org/wiki/File:23_September_2016_Security_Council_Meeting_at_United_Nations_(29312905594).jpg |
 | commons-begin-carter-and-sadat-at-camp-david-1978.jpg | Accords de Camp David, 1978 | Fitz-Patrick, Bill, photographer | public domain | https://commons.wikimedia.org/wiki/File:Begin,_Carter_and_Sadat_at_Camp_David_1978.jpg |
 | commons-anwar-sadat-jimmy-carter-menachem-begin-sign-camp-david-acco.jpg | Accords de Camp David, 1978 | Not know or unknown | public domain | https://commons.wikimedia.org/wiki/File:Anwar_Sadat_Jimmy_Carter_Menachem_Begin_sign_Camp_David_Accords-1978.jpg |
-| commons-brzezinski-and-israeli-prime-minister-menachem-begin-play-ch.jpg | Accords de Camp David, 1978 | CSIS / Center for Strategic &amp; International Studies from Washington DC, USA | cc by 2.0 | https://commons.wikimedia.org/wiki/File:Brzezinski_and_Israeli_Prime_Minister_Menachem_Begin_play_chess_during_Camp_David_Accords._September_9,_1978._(35032499241).jpg |
+| commons-brzezinski-and-israeli-prime-minister-menachem-begin-play-ch.jpg | Accords de Camp David, 1978 | CSIS | Center for Strategic &amp; International Studies from Washington DC, USA | cc by 2.0 | https://commons.wikimedia.org/wiki/File:Brzezinski_and_Israeli_Prime_Minister_Menachem_Begin_play_chess_during_Camp_David_Accords._September_9,_1978._(35032499241).jpg |
 | commons-signing-of-the-treaty-of-versailles-by-john-christen-johanse.jpg | Traité de Versailles, 1919 | John Christen Johansen | public domain | https://commons.wikimedia.org/wiki/File:Signing_of_the_Treaty_of_Versailles,_by_John_Christen_Johansen.jpg |
 | commons-arrangement-of-tables-for-signing-of-treaty-of-versailles-19.jpg | Traité de Versailles, 1919 | Lt. M.S. Lentz | public domain | https://commons.wikimedia.org/wiki/File:Arrangement_of_tables_for_signing_of_Treaty_of_Versailles_1919-06-27.JPEG |
 | commons-treaty-of-versailles-signing-hall-of-mirrors.jpg | Traité de Versailles, 1919 | Helen Johns Kirtland (1890-1979) and Lucian Swift Kirtland (died 1965) | public domain | https://commons.wikimedia.org/wiki/File:Treaty_of_Versailles_Signing,_Hall_of_Mirrors.jpg |
@@ -375,3 +375,35 @@ Photographies du fond défilant. NASA : https://images.nasa.gov (généralement 
 | commons-oil-tanker-off-of-the-yemen-coast-oil-tanker-yemen-coast.jpg | Pétrolier | European Union , Copernicus Sentinel-2 imagery | attribution | https://commons.wikimedia.org/wiki/File:Oil_tanker_off_of_the_Yemen_coast_(oil-tanker-yemen-coast).jpg |
 | commons-solomon-sea-oil-tanker-in-the-solent-england.jpg | Pétrolier | ITookSomePhotos | cc by-sa 4.0 | https://commons.wikimedia.org/wiki/File:Solomon_Sea_(oil_tanker),_in_the_Solent,_England.jpg |
 | commons-oil-tankers-tranmere-oil-terminal-geograph-4548088.jpg | Pétrolier | El Pollock | cc by-sa 2.0 | https://commons.wikimedia.org/wiki/File:Oil_tankers,_Tranmere_Oil_Terminal_(geograph_4548088).jpg |
+| commons-ortelius-maris-pacifici-1589.jpg | Atlas d'Ortelius | Abraham Ortelius | public domain | https://commons.wikimedia.org/wiki/File:Ortelius_-_Maris_Pacifici_1589.jpg |
+| commons-regni-hispaniae-from-theatrum-orbis-terrarum-1570-by-abraham.jpg | Atlas d'Ortelius | Abraham Ortelius | public domain | https://commons.wikimedia.org/wiki/File:Regni_Hispaniae_(from_Theatrum_Orbis_Terrarum,_1570),_by_Abraham_Ortelius.jpg |
+| commons-theatrum-orbis-terrarum-abraham-ortelius-europam-sive-celtic.jpg | Atlas d'Ortelius | Ortelius, Abraham (1527-1598). Cartographe | public domain | https://commons.wikimedia.org/wiki/File:Theatrum_orbis_terrarum_-_Abraham_Ortelius._,_Europam,_sive_Celticam_veterem_-_sic_describere_conabar_Abrah._ortelius_-_btv1b10101467d.jpg |
+| commons-cem-15-asia-mercator-1595-2531.jpg | Carte de l'Europe, Mercator | Gerardus Mercator | public domain | https://commons.wikimedia.org/wiki/File:CEM-15-Asia-Mercator-1595-2531.jpg |
+| commons-vialikaje-kniastva-lito-skaje-g-mercator-1595.jpg | Carte de l'Europe, Mercator | Gerardus Mercator | public domain | https://commons.wikimedia.org/wiki/File:Vialikaje_Kniastva_Lito%C5%ADskaje._%D0%92%D1%8F%D0%BB%D1%96%D0%BA%D0%B0%D0%B5_%D0%9A%D0%BD%D1%8F%D1%81%D1%82%D0%B2%D0%B0_%D0%9B%D1%96%D1%82%D0%BE%D1%9E%D1%81%D0%BA%D0%B0%D0%B5_(G._Mercator,_1595).jpg |
+| commons-cem-15-asia-mercator-1595-russia-2533.jpg | Carte de l'Europe, Mercator | Gerardus Mercator | public domain | https://commons.wikimedia.org/wiki/File:CEM-15-Asia-Mercator-1595-Russia-2533.jpg |
+| commons-1635-blaeu-map-guiana-venezuela-and-el-dorado-geographicus-g.jpg | Atlas Blaeu | Willem Blaeu | public domain | https://commons.wikimedia.org/wiki/File:1635_Blaeu_Map_Guiana,_Venezuela,_and_El_Dorado_-_Geographicus_-_Guiana-blaeu-1635.jpg |
+| commons-gallia-vulgo-la-france-atlas-maior-vol-7-map-3-joan-blaeu-16.jpg | Atlas Blaeu | Joan Blaeu | public domain | https://commons.wikimedia.org/wiki/File:Gallia,_Vulgo_La_France_-_Atlas_Maior,_vol_7,_map_3_-_Joan_Blaeu,_1667_-_BL_114.h(star).7.(3).jpg |
+| commons-le-govvernement-de-l-isle-de-france-atlas-maior-vol-7-map-4-.jpg | Atlas Blaeu | Joan Blaeu | public domain | https://commons.wikimedia.org/wiki/File:Le_Govvernement_De_L%27Isle_De_France_-_Atlas_Maior,_vol_7,_map_4_-_Joan_Blaeu,_1667_-_BL_114.h(star).7.(4).jpg |
+| commons-carte-de-cassini-index-20260724-111848.jpg | Carte de Cassini | OwenBlacker | cc0 | https://commons.wikimedia.org/wiki/File:Carte_de_Cassini,_index_20260724_111848.jpg |
+| commons-carte-de-cassini-bo-te-20260724-111525.jpg | Carte de Cassini | OwenBlacker | cc0 | https://commons.wikimedia.org/wiki/File:Carte_de_Cassini,_bo%C3%AEte_20260724_111525.jpg |
+| commons-carte-de-cassini-et-myst-re-20260724-112000.jpg | Carte de Cassini | OwenBlacker | cc0 | https://commons.wikimedia.org/wiki/File:Carte_de_Cassini_et_myst%C3%A8re_20260724_112000.jpg |
+| commons-mediterranean-chart-fourteenth-century2.jpg | Carte marine de la Méditerranée | anonymous, probably Genoan | public domain | https://commons.wikimedia.org/wiki/File:Mediterranean_chart_fourteenth_century2.jpg |
+| commons-1590-portolan-chart-of-the-mediterranean-sea-and-europe.jpg | Carte marine de la Méditerranée | Joan Riezo figlo de mastro dominico [Olives] in missina año 1590. | public domain | https://commons.wikimedia.org/wiki/File:1590_Portolan_chart_of_the_Mediterranean_Sea_and_Europe.png |
+| commons-1553-portolan-chart-of-the-mediterranean-sea-by-giacomo-magg.jpg | Carte marine de la Méditerranée | Maggiolo, Giacomo. | public domain | https://commons.wikimedia.org/wiki/File:1553_Portolan_chart_of_the_Mediterranean_Sea_by_Giacomo_Maggiolo.png |
+| commons-1730-homann-map-of-scandinavia-norway-sweden-denmark-finland.jpg | Carte ancienne de la Russie | Johann Homann | public domain | https://commons.wikimedia.org/wiki/File:1730_Homann_Map_of_Scandinavia,_Norway,_Sweden,_Denmark,_Finland_and_the_Baltics_-_Geographicus_-_Scandinavia-homann-1730.jpg |
+| commons-1775-map-the-russian-discoveries-from-the-map-published-by-t.jpg | Carte ancienne de la Russie | Robert Sayer | public domain | https://commons.wikimedia.org/wiki/File:1775_map_-_The_Russian_Discoveries,_from_the_Map_Published_by_the_Imperial_Academy_of_St._Petersburg.jpg |
+| commons-1730-map-of-russia-and-tartary-by-johann-matthias-hase.jpg | Carte ancienne de la Russie | Johann Matthias Hase | public domain | https://commons.wikimedia.org/wiki/File:1730_map_of_Russia_and_Tartary_by_Johann_Matthias_Hase.jpg |
+| commons-c-1801-1812-europe-treaty-adjustments.jpg | Europe napoléonienne | William Robert Shepherd | public domain | https://commons.wikimedia.org/wiki/File:C._1801-1812_Europe_(treaty_adjustments).jpg |
+| commons-c-1812-central-europe.jpg | Europe napoléonienne | William Robert Shepherd | public domain | https://commons.wikimedia.org/wiki/File:C._1812_Central_Europe.jpg |
+| commons-1813-1833-munich-to-the-victims-of-the-1812-1813-napol-onic-.jpg | Europe napoléonienne | Alta Falisa | cc by-sa 4.0 | https://commons.wikimedia.org/wiki/File:1813_%E2%80%93_1833,_Munich_%E2%80%93_To_the_Victims_of_the_1812-1813_napol%C3%A9onic_Russian_campaign,_plaques.jpg |
+| commons-bartholomew-s-political-map-of-the-new-europe-1920-according.jpg | Europe en 1914 | Auteur non précisé | public domain | https://commons.wikimedia.org/wiki/File:Bartholomew%27s_political_map_of_the_new_Europe_1920_according_to_treaties_of_Paris_(5007973).jpg |
+| commons-europe-map-in-1914.jpg | Europe en 1914 | Petolaszlo | cc by-sa 4.0 | https://commons.wikimedia.org/wiki/File:Europe_map_in_1914.jpg |
+| commons-a-blank-map-of-europe-in-1914.jpg | Europe en 1914 | ClayWolf | cc by-sa 4.0 | https://commons.wikimedia.org/wiki/File:A_Blank_Map_of_Europe_in_1914.png |
+| commons-cold-war-europe-military-alliances-map-en.jpg | Europe de la guerre froide | Auteur non précisé | cc by-sa 3.0 | https://commons.wikimedia.org/wiki/File:Cold_war_europe_military_alliances_map_en.png |
+| commons-cold-war-europe-military-alliances-map-he.jpg | Europe de la guerre froide | Author: San Jose Translation: he:User:רוליג | cc by-sa 3.0 | https://commons.wikimedia.org/wiki/File:Cold_war_europe_military_alliances_map_HE.png |
+| commons-cold-war-europe-military-alliances-map-ar.jpg | Europe de la guerre froide | Original: San Jose Derivative: باسم | cc by-sa 3.0 | https://commons.wikimedia.org/wiki/File:Cold_war_europe_military_alliances_map_ar.png |
+| commons-1853-map-of-the-ottoman-empire-the-black-sea-and-the-frontie.jpg | Carte ancienne de la mer Noire | James Wyld | public domain | https://commons.wikimedia.org/wiki/File:1853_-_Map_of_the_Ottoman_Empire,_the_Black_Sea_and_the_frontiers_of_Russia_and_Persia.jpg |
+| commons-map-of-the-territories-of-the-ottoman-empire-around-the-blac.jpg | Carte ancienne de la mer Noire | Samuel Dunn | public domain | https://commons.wikimedia.org/wiki/File:Map_of_the_territories_of_the_Ottoman_Empire_around_the_Black_Sea_by_Samuel_Dunn,_published_1804.jpg |
+| commons-1785-map-of-the-ottoman-austrian-and-russian-empires.jpg | Carte ancienne de la mer Noire | Johann Christian Rhode | public domain | https://commons.wikimedia.org/wiki/File:1785_map_of_the_Ottoman,_Austrian_and_Russian_Empires.jpg |
+
+Les images « nasa-* » proviennent du catalogue de la NASA (https://images.nasa.gov), généralement libres d'usage.

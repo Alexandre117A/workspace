@@ -3,7 +3,7 @@ import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PHASE_LABELS } from "@geonex/shared";
 import { Backdrop, Label, Notice, Sheet, useLayout } from "../ui";
-import { GeoMap } from "../GeoMap";
+import { ContextStrip, TeamWorkspace, useAtlas } from "../../atlas/AtlasWorkspace";
 import { Ack } from "../../lib/game";
 import { CARD_STYLE, C, F, S } from "../../theme";
 import { CardsPanel } from "./CardsPanel";
@@ -17,15 +17,13 @@ type SheetKey = "capital" | "cards" | "balance" | "domestic" | "report" | "situa
 
 /** Poste de commandement d'une équipe. */
 export function CommandPost({ game, emit, title, voice, openDossier }: { game: any; emit: (e: string, p?: unknown) => Promise<Ack>; title: string; voice: boolean; openDossier: () => void }) {
-  const { width, height, phone, desktop } = useLayout();
+  const { phone } = useLayout();
   const [sheet, setSheet] = useState<SheetKey>(null);
   const { view, runtime, offset } = game;
-  if (!view?.me || !runtime) return null;
+  const { ctx, previous } = useAtlas(view);
+  if (!view?.me || !runtime || !ctx) return null;
   const me = view.me;
   const p: PhaseProps = { view, runtime, offset, messages: game.messages, invites: game.invites, report: game.report, emit, voice, sessionId: game.lobby?.session?.id ?? "", openDossier, openCards: () => setSheet("cards") };
-  const fictional = view.setting.theatre.map_kind === "fictional";
-  const zones = view.zones.map((z: any) => ({ ...z.region, label: z.name, kind: "zone" as const }));
-  const events = (view.events ?? []).filter((e: any) => e.location && e.round >= runtime.round - 1).map((e: any) => ({ ...e.location, kind: "event" as const, color: C.amber }));
 
   const phasePanel = (() => {
     switch (runtime.phase) {
@@ -49,7 +47,6 @@ export function CommandPost({ game, emit, title, voice, openDossier }: { game: a
     balance: <AccessCard compact={compact} label="Rapport de force" color={C.brass} locked={!view.balance} value={view.balance ? `${Object.values(view.balance.shares as Record<string, number>).join(" / ")} %` : "—"} sub={view.balance ? "camps" : `Débloqué au round 3`} onPress={() => setSheet("balance")} />,
   });
 
-  const panelWidth = desktop ? 560 : phone ? width : Math.min(640, width - 32);
   const sheets = (
     <>
       <Sheet visible={sheet === "capital"} onClose={() => setSheet(null)} title="Capitaux et ressources" accent={C.steel}><CapitalPanel view={view} report={game.report} /></Sheet>
@@ -61,7 +58,7 @@ export function CommandPost({ game, emit, title, voice, openDossier }: { game: a
     </>
   );
   const top = (
-    <TopBar title={title} runtime={runtime} offset={offset} simTime={view.sim_time} connected={game.connected}
+    <TopBar title={title} runtime={runtime} offset={offset} simTime={view.sim_time} connected={game.connected} strip={<ContextStrip ctx={ctx} runtime={runtime} />}
       right={<View style={{ flexDirection: "row", gap: 12 }}><Text onPress={() => setSheet("situation")} style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 1.6, color: C.steel }}>SITUATION</Text><Text onPress={openDossier} style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 1.6, color: C.brass }}>DOSSIER</Text></View>} />
   );
   const phaseHeader = (
@@ -73,6 +70,9 @@ export function CommandPost({ game, emit, title, voice, openDossier }: { game: a
     </View>
   );
 
+  const reconnect = !game.connected ? <View style={{ paddingBottom: S(3) }}><Notice tone="warn">Connexion interrompue — reconnexion automatique…</Notice></View> : null;
+  const decision = <>{phaseHeader}{phasePanel}</>;
+
   if (phone) {
     const a = access(true);
     return (
@@ -80,16 +80,9 @@ export function CommandPost({ game, emit, title, voice, openDossier }: { game: a
         <Backdrop />
         <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
           {top}
-          <ScrollView contentContainerStyle={{ paddingBottom: 150 }}>
-            <View style={{ height: 190, borderBottomWidth: 1, borderBottomColor: C.line }}>
-              <GeoMap width={width} height={190} focus={view.setting.theatre.iso_n3} highlight={fictional ? [me.id] : me.iso_n3} center={view.setting.theatre.center}
-                fictional={fictional ? view.setting.theatre.fictional_regions : null} points={[...zones, ...events]} warning={view.setting.theatre.border_warning} showLabels={false} />
-            </View>
-            {!game.connected ? <View style={{ padding: S(3) }}><Notice tone="warn">Connexion interrompue — reconnexion automatique…</Notice></View> : null}
-            <View style={{ padding: S(4) }}>{phaseHeader}{phasePanel}</View>
-          </ScrollView>
+          <TeamWorkspace view={view} ctx={ctx} previous={previous} decision={decision} access={null} notice={reconnect} bottomInset={150} />
         </SafeAreaView>
-        <SafeAreaView edges={["bottom"]} style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "#05070AF2", borderTopWidth: 1, borderTopColor: C.line }}>
+        <SafeAreaView edges={["bottom"]} style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "#0B1420F2", borderTopWidth: 1, borderTopColor: C.line }}>
           <View style={{ flexDirection: "row", gap: 6, padding: 6 }}>{a.capital}{a.cards}{a.domestic}{a.balance}</View>
           <View style={{ alignItems: "flex-end", paddingHorizontal: S(3), paddingBottom: 4 }}><RoundMark round={runtime.round} /></View>
         </SafeAreaView>
@@ -99,43 +92,13 @@ export function CommandPost({ game, emit, title, voice, openDossier }: { game: a
   }
 
   const a = access(false);
-  const homeW = desktop ? width * 0.55 : width;
-  const homeH = desktop ? height - 60 : height * 0.36;
-  const theatreW = desktop ? Math.min(460, width * 0.3) : width / 2 - 24;
-  const theatreH = desktop ? 300 : height * 0.3;
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Backdrop dense />
       <SafeAreaView style={{ flex: 1 }}>
         {top}
-        <View style={{ flex: 1 }}>
-          {/* Territoire de l'acteur : fond sombre, presque monochrome. */}
-          <View style={{ position: "absolute", left: 0, top: 0, opacity: 0.9 }} pointerEvents="none">
-            <GeoMap width={homeW} height={homeH} variant="home" highlight={fictional ? [me.id] : me.iso_n3}
-              fictional={fictional ? view.setting.theatre.fictional_regions : null}
-              points={me.regions.map((r: any) => ({ ...r, kind: "city" as const }))} showLabels={false} />
-            <Text style={{ position: "absolute", left: S(5), top: S(4), fontFamily: F.title, fontSize: desktop ? 54 : 36, color: "#ffffff18" }}>{me.name}</Text>
-          </View>
-          {/* Théâtre de la crise : style distinct (laiton), zones et événements. */}
-          <View style={{ position: "absolute", right: S(4), top: S(4), width: theatreW, borderWidth: 1, borderColor: C.lineHi, backgroundColor: "#070A0EE6" }}>
-            <View style={{ paddingHorizontal: S(3), paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: C.line }}><Label color={C.brass}>Théâtre · {view.setting.theatre.name}</Label></View>
-            <GeoMap width={theatreW - 2} height={theatreH} focus={view.setting.theatre.iso_n3} highlight={fictional ? [me.id] : me.iso_n3} center={view.setting.theatre.center}
-              fictional={fictional ? view.setting.theatre.fictional_regions : null} points={[...zones, ...events]} warning={view.setting.theatre.border_warning} />
-          </View>
-          {/* Panneau de phase central. */}
-          <View style={{ position: "absolute", left: desktop ? Math.max(S(6), width * 0.3 - panelWidth / 2) : 16, top: desktop ? S(6) : theatreH + S(10), bottom: 120, width: panelWidth }}>
-            <ScrollView style={{ backgroundColor: "#0A0F14F2", borderWidth: 1, borderColor: C.lineHi }} contentContainerStyle={{ padding: S(5) }}>
-              {!game.connected ? <Notice tone="warn">Connexion interrompue — reconnexion automatique…</Notice> : null}
-              {phaseHeader}
-              {phasePanel}
-            </ScrollView>
-          </View>
-          <View style={{ position: "absolute", left: S(4), bottom: S(4), flexDirection: "row", gap: S(3) }}>{a.capital}{a.cards}</View>
-          <View style={{ position: "absolute", right: S(4), bottom: S(4), alignItems: "flex-end", gap: S(2) }}>
-            <View style={{ flexDirection: "row", gap: S(3) }}>{a.domestic}{a.balance}</View>
-            <RoundMark round={runtime.round} />
-          </View>
-        </View>
+        <TeamWorkspace view={view} ctx={ctx} previous={previous} decision={decision} notice={reconnect}
+          access={<>{a.capital}{a.cards}{a.domestic}{a.balance}<View style={{ justifyContent: "flex-end", paddingBottom: 4 }}><RoundMark round={runtime.round} /></View></>} />
       </SafeAreaView>
       {sheets}
     </View>

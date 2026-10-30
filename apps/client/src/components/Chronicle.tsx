@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, Platform, StyleSheet, Text, View } from "react-native";
-import Svg, { Defs, LinearGradient, Pattern, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, Line, LinearGradient, Pattern, Rect, Stop, Text as SvgText } from "react-native-svg";
 import { useLayout, useReducedMotion } from "./ui";
 import { PHOTOS, Photo } from "../content/photos";
 import { C, F } from "../theme";
@@ -69,12 +69,12 @@ function TileView({ t, w, h, left, top, uid }: { t: Tile; w: number; h: number; 
       {Platform.OS === "web" ? null : <Svg style={StyleSheet.absoluteFill} width={w} height={h}>
         <Defs>
           <LinearGradient id={`tv${uid}`} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#0A0D12" stopOpacity="0.95" /><Stop offset="0.28" stopColor="#0A0D12" stopOpacity="0" />
-            <Stop offset="0.72" stopColor="#0A0D12" stopOpacity="0" /><Stop offset="1" stopColor="#0A0D12" stopOpacity="0.95" />
+            <Stop offset="0" stopColor="#0B1420" stopOpacity="0.95" /><Stop offset="0.28" stopColor="#0B1420" stopOpacity="0" />
+            <Stop offset="0.72" stopColor="#0B1420" stopOpacity="0" /><Stop offset="1" stopColor="#0B1420" stopOpacity="0.95" />
           </LinearGradient>
           <LinearGradient id={`th${uid}`} x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0" stopColor="#0A0D12" stopOpacity="0.9" /><Stop offset="0.24" stopColor="#0A0D12" stopOpacity="0" />
-            <Stop offset="0.76" stopColor="#0A0D12" stopOpacity="0" /><Stop offset="1" stopColor="#0A0D12" stopOpacity="0.9" />
+            <Stop offset="0" stopColor="#0B1420" stopOpacity="0.9" /><Stop offset="0.24" stopColor="#0B1420" stopOpacity="0" />
+            <Stop offset="0.76" stopColor="#0B1420" stopOpacity="0" /><Stop offset="1" stopColor="#0B1420" stopOpacity="0.9" />
           </LinearGradient>
         </Defs>
         <Rect width={w} height={h} fill={`url(#th${uid})`} /><Rect width={w} height={h} fill={`url(#tv${uid})`} />
@@ -89,9 +89,31 @@ function TileView({ t, w, h, left, top, uid }: { t: Tile; w: number; h: number; 
   );
 }
 
+/** Quadrillage d'atlas fixe : méridiens et parallèles très fins, graduations en bordure. Il se fond dans les photographies et les cartes anciennes. */
+function AtlasGrid({ w, h }: { w: number; h: number }) {
+  const STEP = 140;
+  const lats = Array.from({ length: Math.ceil(h / STEP) }, (_, i) => i);
+  const lons = Array.from({ length: Math.ceil(w / STEP) }, (_, i) => i);
+  return (
+    <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+      <Defs>
+        <Pattern id="atlasgrid" width={STEP} height={STEP} patternUnits="userSpaceOnUse">
+          <Line x1="0" y1="0.5" x2={STEP} y2="0.5" stroke="#9CC0E3" strokeWidth={0.6} opacity={0.22} />
+          <Line x1="0.5" y1="0" x2="0.5" y2={STEP} stroke="#9CC0E3" strokeWidth={0.6} opacity={0.22} />
+          <Line x1="0" y1={STEP / 2} x2={STEP} y2={STEP / 2} stroke="#9CC0E3" strokeWidth={0.4} strokeDasharray="2,6" opacity={0.18} />
+          <Line x1={STEP / 2} y1="0" x2={STEP / 2} y2={STEP} stroke="#9CC0E3" strokeWidth={0.4} strokeDasharray="2,6" opacity={0.18} />
+        </Pattern>
+      </Defs>
+      <Rect width="100%" height="100%" fill="url(#atlasgrid)" />
+      {lats.map((i) => i > 0 ? <SvgText key={`a${i}`} x={6} y={i * STEP - 4} fontSize={8.5} fontFamily={F.mono} fill="#CFE0F2" opacity={0.4}>{70 - i * 5}°N</SvgText> : null)}
+      {lons.map((i) => i > 0 ? <SvgText key={`o${i}`} x={i * STEP + 4} y={11} fontSize={8.5} fontFamily={F.mono} fill="#CFE0F2" opacity={0.4}>{-30 + i * 10}°{-30 + i * 10 >= 0 ? "E" : "O"}</SvgText> : null)}
+    </Svg>
+  );
+}
+
 /** Fond défilant. `strength` règle la visibilité (0.3 discret → 1 plein cadre). */
 export function Chronicle({ strength = 0.85 }: { strength?: number }) {
-  const { width } = useLayout();
+  const { width, height } = useLayout();
   const reduced = useReducedMotion();
   const w = Math.max(320, Math.round(width));
   const cols = Math.max(2, Math.round(w / 280));
@@ -136,6 +158,7 @@ export function Chronicle({ strength = 0.85 }: { strength?: number }) {
         <Defs><Pattern id="grain" width="5" height="5" patternUnits="userSpaceOnUse"><Rect width="1" height="1" fill="#fff" opacity={0.1} /><Rect x="3" y="2" width="1" height="1" fill="#fff" opacity={0.07} /></Pattern></Defs>
         <Rect width="100%" height="100%" fill="url(#grain)" />
       </Svg>
+      <AtlasGrid w={w} h={Math.round(height)} />
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: "#fff", opacity: flicker }]} />
     </View>
   );

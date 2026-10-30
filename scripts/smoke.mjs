@@ -37,6 +37,9 @@ try {
   const deep = await call("/credits");
   deep.status === 200 && deep.type.includes("text/html") ? ok("Navigation directe vers /credits") : ko("Navigation directe vers /credits", `HTTP ${deep.status}`);
 
+  const cat = await call("/api/catalog");
+  cat.status === 200 && Array.isArray(cat.data?.scenarios) && cat.data.scenarios.length >= 4 ? ok("Catalogue de scénarios", `${cat.data.scenarios.length} fiches`) : ko("Catalogue de scénarios", `HTTP ${cat.status}`);
+
   const g = await call("/api/auth/guest", { method: "POST", body: { displayName: `Test ${Date.now() % 10000}` } });
   const token = g.data?.token ?? g.data?.accessToken;
   token ? ok("Compte invité") : ko("Compte invité", `HTTP ${g.status} ${JSON.stringify(g.data).slice(0, 120)}`);

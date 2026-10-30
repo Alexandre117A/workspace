@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { api } from "../lib/api";
 import { useConfig, useRequireAuth } from "../lib/hooks";
 import { C, F, MODE_STYLE, S } from "../theme";
@@ -17,7 +17,8 @@ export function ScenarioRequest({ mode }: { mode: "contemporary" | "historical" 
   const user = useRequireAuth(`/${mode}`);
   const { cfg } = useConfig();
   const m = MODE_STYLE[mode];
-  const [prompt, setPrompt] = useState("");
+  const params = useLocalSearchParams<{ prompt?: string }>();
+  const [prompt, setPrompt] = useState(typeof params.prompt === "string" ? params.prompt.slice(0, 1500) : ""); // préremplie depuis une fiche de scénario
   const [teams, setTeams] = useState(4);
   const [duration, setDuration] = useState(60);
   const [busy, setBusy] = useState(false);

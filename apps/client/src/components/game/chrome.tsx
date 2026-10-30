@@ -7,13 +7,14 @@ import { fmtClock, remaining, useNow } from "../../lib/game";
 import { C, F, S } from "../../theme";
 
 /** Barre supérieure : phase, chronomètre serveur, temps simulé, état de connexion. */
-export function TopBar({ title, runtime, offset, simTime, connected, right }: { title: string; runtime: any; offset: number; simTime?: string; connected: boolean; right?: React.ReactNode }) {
+export function TopBar({ title, runtime, offset, simTime, connected, right, strip }: { title: string; runtime: any; offset: number; simTime?: string; connected: boolean; right?: React.ReactNode; strip?: React.ReactNode }) {
   const now = useNow(250);
   const { phone } = useLayout();
   const left = runtime?.paused ? runtime.pausedRemainingMs : remaining(runtime?.phaseDeadline, offset, now);
   const total = runtime?.endsAt ? remaining(runtime.endsAt, offset, now) : null;
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: S(4), paddingVertical: S(2), borderBottomWidth: 1, borderBottomColor: C.line, backgroundColor: "#05070AE6", gap: S(3) }}>
+    <View>
+    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: S(4), paddingVertical: S(2), borderBottomWidth: 1, borderBottomColor: C.line, backgroundColor: "#0B1420E6", gap: S(3) }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: S(3), flex: 1 }}>
         <Emblem size={phone ? 24 : 28} />
         {!phone ? <Text numberOfLines={1} style={{ fontFamily: F.title, color: C.text, fontSize: 18, flexShrink: 1 }}>{title}</Text> : null}
@@ -23,13 +24,15 @@ export function TopBar({ title, runtime, offset, simTime, connected, right }: { 
         <Text accessibilityLabel="Temps restant pour la phase" style={{ fontFamily: F.monoBold, fontSize: phone ? 22 : 26, color: left !== null && left < 15000 && !runtime?.paused ? C.red : C.text }}>{fmtClock(left)}</Text>
       </View>
       <View style={{ flex: 1, alignItems: "flex-end", gap: 2 }}>
-        {simTime && !phone ? <Label color={C.muted}>{simTime}</Label> : null}
+        {simTime && !phone && !strip ? <Label color={C.muted}>{simTime}</Label> : null}
         <View style={{ flexDirection: "row", gap: S(3), alignItems: "center" }}>
           {total !== null && !phone ? <Label color={C.faint}>Fin ≈ {fmtClock(total)}</Label> : null}
           <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: connected ? C.green : C.red }} accessibilityLabel={connected ? "Connecté" : "Reconnexion"} />
           {right}
         </View>
       </View>
+    </View>
+    {strip}
     </View>
   );
 }

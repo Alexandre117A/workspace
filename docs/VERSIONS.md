@@ -47,3 +47,9 @@ La v1 et une version suivante partagent la même base PostgreSQL (Neon). Si la s
 (dossier `services/api/migrations`), un retour à la v1 pourrait ne plus s'entendre avec elle. Précautions : n'ajouter que
 des colonnes ou tables nouvelles (jamais de suppression ni de renommage) tant que le retour doit rester possible, ou
 essayer la nouvelle version sur une base Neon séparée (une « branche » Neon, gratuite) avant de l'adopter.
+
+## v2 « Atlas stratégique » (en cours)
+Développée sur la branche `v2`, **sans toucher à `main`** : le site public (https://geonex.onrender.com) reste donc en v1 tant
+que `v2` n'est pas fusionnée. Pour l'essayer en local : `git switch v2` puis `Lancer GEONEX.bat`. Pour la mettre en ligne
+après approbation : `git switch main && git merge v2 && git push origin main`. Pour y renoncer : `git switch main`.
+Description : `docs/ATLAS.md`.

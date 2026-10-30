@@ -42,7 +42,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
   const grow = draw.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] });
   const spacing = word.interpolate({ inputRange: [0, 1], outputRange: [18, 10] });
   return (
-    <Animated.View style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, backgroundColor: "rgba(10,13,18,0.5)", alignItems: "center", justifyContent: "center", opacity: out, zIndex: 50 }}>
+    <Animated.View style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, backgroundColor: "rgba(11,20,32,0.5)", alignItems: "center", justifyContent: "center", opacity: out, zIndex: 50 }}>
       <Animated.Image source={require("../../assets/brand/logo.png")} accessibilityLabel="Logo GEONEX" resizeMode="contain"
         style={{ width: size, height: size, opacity: reveal, transform: [{ scale: grow }] }} />
       <Animated.Text style={{ marginTop: 28, fontFamily: F.monoBold, fontSize: Math.min(44, width / 9), color: C.text, letterSpacing: spacing as any, opacity: word }}>GEONEX</Animated.Text>
