@@ -218,6 +218,47 @@ def card_submit(req: CardReq) -> dict[str, Any]:
     return {"world": _dump(world), "use": use.model_dump(), "views": views.all_views(world)}
 
 
+class CardRuleReq(BaseModel):
+    world: dict[str, Any]
+    use_id: str
+    approve: bool
+    probability: Optional[float] = None
+
+
+@app.post("/cards/rule", dependencies=[Depends(_auth)])
+def card_rule(req: CardRuleReq) -> dict[str, Any]:
+    """Arbitrage présidentiel d'une carte : refusée → carte rendue ; acceptée →
+    probabilité éventuellement transmise au tirage."""
+    world = _world(req.world)
+    use = next((c for c in world.cards_used if c.id == req.use_id and c.status == "submitted"), None)
+    if use is None:
+        raise HTTPException(404, "Utilisation de carte introuvable.")
+    if req.approve:
+        if req.probability is not None:
+            use.payload["president_probability"] = max(0.01, min(0.99, req.probability))
+    else:
+        use.status = "rejected"
+        use.result = {"summary": "Demande refusée par le Président de séance ; la carte reste disponible."}
+    return {"world": _dump(world), "views": views.all_views(world)}
+
+
+class ControlReq(BaseModel):
+    world: dict[str, Any]
+    actor_id: str
+    controlled_by: str
+
+
+@app.post("/sessions/control", dependencies=[Depends(_auth)])
+def control(req: ControlReq) -> dict[str, Any]:
+    """Absence prolongée : le Président peut confier temporairement un acteur au moteur."""
+    world = _world(req.world)
+    actor = world.actors.get(req.actor_id)
+    if actor is None or req.controlled_by not in ("human", "npc"):
+        raise HTTPException(400, "Paramètres invalides.")
+    actor.controlled_by = req.controlled_by  # type: ignore[assignment]
+    return {"world": _dump(world), "views": views.all_views(world)}
+
+
 class EstimateReq(BaseModel):
     world: dict[str, Any]
     actor_id: str

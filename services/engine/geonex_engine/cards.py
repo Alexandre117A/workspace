@@ -48,6 +48,9 @@ def validate(world: WorldState, actor_id: str, card: str, payload: dict) -> list
     if not av["available"]:
         errs.append(av["reason"] or "Carte déjà utilisée pour cette simulation.")
     for k, v in (payload.get("invest") or {}).items():
+        if not isinstance(v, (int, float)):
+            errs.append("Investissement invalide.")
+            continue
         if k in ("political", "economic", "military") and float(v) > actor.capitals.get(k):
             errs.append(f"Capital {k} insuffisant.")
         if float(v) < 0 or float(v) > 30:
@@ -233,7 +236,7 @@ def _info_war(world: WorldState, use: CardUse, inv: float, rng) -> list[Effect]:
     tgt = world.actors[p["target"]]
     factors = {"investissement": investment(inv, 10), "influence": (actor.capitals.political - tgt.capitals.political) / 35,
                "résilience de la cible": (50 - tgt.cohesion) / 60}
-    a = assess(0.1, factors)
+    a = assess(0.1, factors, p.get("president_probability"))
     roll, outcome = draw(rng, a.probability)
     m = OUTCOME_MAGNITUDE[outcome] * (0.7 + 0.3 * math.log1p(inv / 10))
     E: list[Effect] = []
@@ -280,7 +283,7 @@ def _new_front(world: WorldState, use: CardUse, inv: float, rng) -> list[Effect]
         world.zones.append(zone)
     cap = {"military": "military", "maritime": "military", "spatial": "military", "economic": "economic", "diplomatic": "political", "cyber": "military"}.get(domain, "military")
     factors = {"investissement": investment(inv, 10), "rapport de capacités": (actor.capitals.get(cap) - tgt.capitals.get(cap)) / 30}
-    a = assess(0.0, factors)
+    a = assess(0.0, factors, p.get("president_probability"))
     roll, outcome = draw(rng, a.probability)
     m = OUTCOME_MAGNITUDE[outcome] * (0.7 + 0.3 * math.log1p(inv / 10))
     E = [Effect(actor=actor.id, field=f"tension:{tgt.id}", delta=12, reason="Ouverture d'un nouveau front")]
@@ -317,7 +320,7 @@ def _political_shock(world: WorldState, use: CardUse, inv: float, rng) -> list[E
     }
     if truth_intel:
         factors["renseignement préalable"] = max(-0.5, min(0.5, sum({"exact": 0.3, "partial": 0.15, "uncertain": 0.0, "misleading": -0.35}[r.accuracy] for r in truth_intel)))
-    a = assess(logit(POLITICAL_SHOCK_BASE), factors)
+    a = assess(logit(POLITICAL_SHOCK_BASE), factors, p.get("president_probability"))
     roll, outcome = draw(rng, a.probability)
     from .models import AuditRecord
 

@@ -1,0 +1,94 @@
+import { Controller, Get, Module, OnModuleInit, UseGuards } from "@nestjs/common";
+import { DURATION_RECOMMENDATION, MIN_DURATION_MINUTES } from "@geonex/shared";
+import { ArchivesController, ArchivesService } from "./archives";
+import { AuthController, AuthGuard, AuthService, OwnerGuard } from "./auth";
+import { config } from "./config";
+import { Db } from "./db";
+import { EngineClient } from "./engine.client";
+import { GameGateway } from "./game.gateway";
+import { GameService } from "./game.service";
+import { Hub } from "./hub";
+import { ScenariosController, ScenariosService } from "./scenarios";
+import { SessionsController, SessionsService } from "./sessions";
+import { Store } from "./store";
+
+@Controller()
+class MetaController {
+  constructor(private readonly engine: EngineClient) {}
+
+  @Get("health")
+  async health() {
+    let engine: any = null;
+    try {
+      engine = await this.engine.get("/health");
+    } catch {
+      engine = { status: "unreachable" };
+    }
+    return { status: "ok", service: "geonex-api", engine };
+  }
+
+  /** Fonctionnalités réellement disponibles : le client n'affiche jamais une intégration absente comme active. */
+  @Get("config")
+  async features() {
+    let engine: any = null;
+    try {
+      engine = await this.engine.get("/health");
+    } catch {
+      /* moteur injoignable */
+    }
+    return {
+      app: "GEONEX",
+      minDurationMinutes: MIN_DURATION_MINUTES,
+      recommendation: DURATION_RECOMMENDATION,
+      features: {
+        engine: !!engine,
+        ai: !!engine?.ai?.enabled,
+        research: !!engine?.research,
+        voice: !!(config.livekit.url && config.livekit.apiKey && config.livekit.apiSecret),
+        ads: config.ads.enabled,
+        demo: config.demoMode,
+      },
+    };
+  }
+}
+
+/** Administration globale : réservée au propriétaire de GEONEX (jamais au Président de séance). */
+@Controller("admin")
+@UseGuards(AuthGuard, OwnerGuard)
+class AdminController {
+  constructor(private readonly db: Db, private readonly engine: EngineClient) {}
+
+  @Get("overview")
+  async overview() {
+    const users = await this.db.one("SELECT count(*) FILTER (WHERE NOT is_guest) AS accounts, count(*) FILTER (WHERE is_guest) AS guests FROM users");
+    const sessions = await this.db.query("SELECT status, count(*) AS n FROM sessions GROUP BY status");
+    const usage = await this.db.query("SELECT service, sum(units) AS units, sum(cost_usd) AS cost FROM usage_records GROUP BY service");
+    let ai: any = null;
+    try {
+      ai = (await this.engine.get("/usage")).ai;
+    } catch {
+      ai = null;
+    }
+    return { users, sessions, usage, ai, monetization: { ads: config.ads } };
+  }
+
+  @Get("sessions")
+  sessions() {
+    return this.db.query("SELECT id, name, status, expected_teams, duration_minutes, created_at, finished_at FROM sessions ORDER BY created_at DESC LIMIT 100");
+  }
+}
+
+@Module({
+  controllers: [MetaController, AdminController, AuthController, ScenariosController, SessionsController, ArchivesController],
+  providers: [Db, Store, Hub, EngineClient, AuthService, AuthGuard, OwnerGuard, ScenariosService, SessionsService, GameService, ArchivesService, GameGateway],
+})
+export class AppModule implements OnModuleInit {
+  constructor(private readonly db: Db, private readonly game: GameService) {}
+
+  async onModuleInit() {
+    await this.db.init();
+    await this.db.query("UPDATE sessions SET status='expired' WHERE status='lobby' AND expires_at < now()");
+    await this.db.query("UPDATE participants SET connected = false");
+    await this.game.restore();
+  }
+}
