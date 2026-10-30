@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Image, Platform, Pressable, Text, View } from "react-native";
 import { Link, router } from "expo-router";
-import Svg, { Circle, Line, Path } from "react-native-svg";
+import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { formatJoinCode, isValidJoinCode } from "@geonex/shared";
 import { Wordmark } from "../components/Brand";
 import { Intro } from "../components/Intro";
@@ -14,41 +14,40 @@ import { C, F, MODE_STYLE, S } from "../theme";
 
 type ModeKey = keyof typeof MODE_STYLE;
 
-/** Vignettes originales propres à chaque mode (aucun emblème officiel). */
-function ModeArt({ mode, size }: { mode: ModeKey; size: number }) {
-  const c = MODE_STYLE[mode].accent;
-  if (mode === "contemporary") {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 100 100">
-        <Circle cx="50" cy="50" r="40" stroke={c} strokeWidth="0.8" fill="none" opacity={0.6} />
-        <Circle cx="50" cy="50" r="26" stroke={c} strokeWidth="0.8" fill="none" opacity={0.4} />
-        <Line x1="10" y1="50" x2="90" y2="50" stroke={c} strokeWidth="0.6" opacity={0.5} />
-        <Line x1="50" y1="10" x2="50" y2="90" stroke={c} strokeWidth="0.6" opacity={0.5} />
-        <Line x1="50" y1="50" x2="82" y2="28" stroke={c} strokeWidth="1.6" />
-        <Circle cx="68" cy="38" r="3" fill={c} />
-        <Circle cx="32" cy="62" r="2" fill={c} opacity={0.6} />
-      </Svg>
-    );
-  }
-  if (mode === "historical") {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 100 100">
-        <Path d="M20 80 L20 30 Q50 14 80 30 L80 80 Z" stroke={c} strokeWidth="0.9" fill="none" opacity={0.7} />
-        <Path d="M30 72 L30 38 M42 72 L42 33 M58 72 L58 33 M70 72 L70 38" stroke={c} strokeWidth="0.8" opacity={0.5} />
-        <Path d="M14 84 L86 84" stroke={c} strokeWidth="1.4" />
-        <Circle cx="50" cy="52" r="7" stroke={c} strokeWidth="1.2" fill="none" />
-        <Path d="M50 47 L50 52 L54 54" stroke={c} strokeWidth="1.2" fill="none" />
-      </Svg>
-    );
-  }
+/** Emblèmes des trois modes (ressources locales : assets/modes/mode{1,2,3}.png, préparées par `npm run logos`). */
+const LOGOS = {
+  // scale : le globe occupe moins de son cadre que les deux autres emblèmes ; on l'agrandit pour une présence visuelle équivalente.
+  contemporary: { src: require("../../assets/modes/mode1.png"), halo: "#7C9CD0", scale: 1.3 },
+  historical: { src: require("../../assets/modes/mode2.png"), halo: "#D9AE4E", scale: 1 },
+  fictional: { src: require("../../assets/modes/mode3.png"), halo: "#6F9FEF", scale: 1 },
+} as const;
+
+// Survol (web) : transitions douces ; sur mobile, aucune transition et aucun survol.
+const FADE: any = Platform.OS === "web" ? { transitionProperty: "transform, opacity, filter", transitionDuration: "320ms", transitionTimingFunction: "ease" } : {};
+
+function ModeLogo({ mode, size, hovered }: { mode: ModeKey; size: number; hovered: boolean }) {
+  const l = LOGOS[mode];
+  const box = Math.round(size * l.scale);
+  const off = S(2) - (box - size) / 2; // le centre de l'emblème reste au même endroit, quelle que soit son échelle
+  const halo = Math.round(box * 1.8);
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="34" stroke={c} strokeWidth="0.8" fill="none" opacity={0.5} strokeDasharray="2 3" />
-      <Circle cx="28" cy="36" r="6" stroke={c} strokeWidth="1.2" fill="none" />
-      <Circle cx="70" cy="30" r="9" stroke={c} strokeWidth="1.2" fill="none" />
-      <Circle cx="62" cy="72" r="5" stroke={c} strokeWidth="1.2" fill="none" />
-      <Path d="M33 39 L62 69 M36 34 L61 31 M68 39 L63 67" stroke={c} strokeWidth="0.8" opacity={0.6} />
-    </Svg>
+    <View pointerEvents="none" style={{ position: "absolute", right: off, bottom: off, width: box, height: box, alignItems: "center", justifyContent: "center" }}>
+      {/* Halo extrêmement discret, à la couleur de l'emblème (dégradé radial, jamais plus lumineux que 0,22). */}
+      <View style={[{ position: "absolute", width: halo, height: halo, opacity: hovered ? 1 : 0.6 }, FADE]}>
+        <Svg width={halo} height={halo}>
+          <Defs>
+            <RadialGradient id={`halo-${mode}`} cx="50%" cy="50%" r="50%">
+              <Stop offset="0" stopColor={l.halo} stopOpacity="0.22" />
+              <Stop offset="0.55" stopColor={l.halo} stopOpacity="0.07" />
+              <Stop offset="1" stopColor={l.halo} stopOpacity="0" />
+            </RadialGradient>
+          </Defs>
+          <Rect width={halo} height={halo} fill={`url(#halo-${mode})`} />
+        </Svg>
+      </View>
+      <Image source={l.src} resizeMode="contain" accessible={false}
+        style={[{ width: box, height: box }, FADE, hovered ? ({ transform: [{ scale: 1.05 }], ...(Platform.OS === "web" ? { filter: "brightness(1.12)" } : {}) } as any) : null]} />
+    </View>
   );
 }
 
@@ -58,17 +57,21 @@ function ModeEntry({ mode, href, wide }: { mode: ModeKey; href: string; wide: bo
     <Pressable accessibilityRole="link" accessibilityLabel={m.label} onPress={() => router.push(href as any)}
       style={({ hovered, pressed }: any) => ({
         flex: wide ? 1 : undefined, minHeight: wide ? 300 : 150, borderWidth: 1, borderColor: hovered ? m.accent : C.line, backgroundColor: pressed ? C.panelHi : C.panel,
-        padding: S(5), justifyContent: "space-between", flexDirection: wide ? "column" : "row", gap: S(4),
+        padding: S(5), justifyContent: "space-between", flexDirection: wide ? "column" : "row", gap: S(4), overflow: "hidden",
       })}>
-      <View style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 2, backgroundColor: m.accent, opacity: 0.8 }} />
-      <View style={{ flex: wide ? undefined : 1, gap: S(3) }}>
-        <Label color={m.accent}>{m.code}</Label>
-        <Text style={{ fontFamily: F.title, fontSize: wide ? 30 : 26, color: C.text, lineHeight: wide ? 34 : 30 }}>{m.label}</Text>
-        <Body muted style={{ fontSize: 14 }}>{m.tagline}</Body>
-      </View>
-      <View style={{ alignItems: wide ? "flex-end" : "center", justifyContent: "flex-end" }}>
-        <ModeArt mode={mode} size={wide ? 96 : 72} />
-      </View>
+      {({ hovered }: any) => (
+        <>
+          <View style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 2, backgroundColor: m.accent, opacity: 0.8 }} />
+          <View style={{ flex: wide ? undefined : 1, gap: S(3) }}>
+            <Label color={m.accent}>{m.code}</Label>
+            <Text style={{ fontFamily: F.title, fontSize: wide ? 30 : 26, color: C.text, lineHeight: wide ? 34 : 30 }}>{m.label}</Text>
+            <Body muted style={{ fontSize: 14 }}>{m.tagline}</Body>
+          </View>
+          {/* Emplacement réservé : même encombrement que l'ancien pictogramme, la mise en page des cartes ne bouge pas. */}
+          <View style={{ width: wide ? 96 : 72, height: wide ? 96 : 72 }} />
+          <ModeLogo mode={mode} size={wide ? 124 : 92} hovered={!!hovered} />
+        </>
+      )}
     </Pressable>
   );
 }
