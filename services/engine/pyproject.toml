@@ -1,0 +1,10 @@
+[project]
+name = "geonex-engine"
+version = "0.1.0"
+description = "Moteur de simulation géopolitique GEONEX"
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "pydantic>=2.8", "httpx>=0.27", "anthropic>=2.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
