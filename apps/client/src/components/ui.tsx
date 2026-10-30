@@ -42,7 +42,7 @@ export function Backdrop({ dense = false }: { dense?: boolean }) {
   );
 }
 
-export function Screen({ children, scroll = true, style, max = 1180, chronicle = 0.3 }: { children: ReactNode; scroll?: boolean; style?: StyleProp<ViewStyle>; max?: number; chronicle?: number }) {
+export function Screen({ children, scroll = true, style, max = 1180, chronicle = 0.7 }: { children: ReactNode; scroll?: boolean; style?: StyleProp<ViewStyle>; max?: number; chronicle?: number }) {
   const body = <View style={[{ width: "100%", maxWidth: max, alignSelf: "center", paddingHorizontal: S(4), paddingVertical: S(5) }, style]}>{children}</View>;
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>

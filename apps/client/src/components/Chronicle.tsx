@@ -184,12 +184,12 @@ function Scene({ w, h, phase }: { w: number; h: number; phase: Animated.Value })
         const ph = k * 0.7;
         let d = `M 0 ${base}`;
         for (let x = 0; x <= w; x += 40) d += ` L ${x} ${base + Math.sin((x / w) * Math.PI * 3 + ph) * amp}`;
-        return <Path key={k} d={d} stroke="url(#ink)" strokeWidth={k % 5 === 0 ? 1.2 : 0.6} fill="none" opacity={k % 5 === 0 ? 0.32 : 0.16} />;
+        return <Path key={k} d={d} stroke="url(#ink)" strokeWidth={k % 5 === 0 ? 2 : 1} fill="none" opacity={k % 5 === 0 ? 0.65 : 0.34} />;
       })}
       {/* méridiens */}
       {Array.from({ length: 9 }).map((_, i) => {
         const x = (i / 8) * w;
-        return <Path key={i} d={`M ${x} 0 Q ${x + (i - 4) * 18} ${h / 2} ${x} ${h}`} stroke="url(#ink)" strokeWidth={0.5} fill="none" opacity={0.14} />;
+        return <Path key={i} d={`M ${x} 0 Q ${x + (i - 4) * 18} ${h / 2} ${x} ${h}`} stroke="url(#ink)" strokeWidth={0.9} fill="none" opacity={0.3} />;
       })}
       {ITEMS.map((it, i) => {
         const size = Math.min(w * 0.46, 520) * it.s;
@@ -198,7 +198,7 @@ function Scene({ w, h, phase }: { w: number; h: number; phase: Animated.Value })
         const ink = it.tone === "sepia" ? SEPIA : STEEL;
         return (
           <G key={i} transform={`translate(${x},${y})`}>
-            <G transform={`scale(${size / 400})`} opacity={0.5}>
+            <G transform={`scale(${size / 400})`} opacity={0.9}>
               <G transform={it.flip ? "translate(400,0) scale(-1,1)" : undefined}><Silhouette kind={it.kind} c={ink} /></G>
             </G>
             <Line x1="0" y1={size * 0.52} x2={size * 0.34} y2={size * 0.52} stroke={ink} strokeWidth={0.8} opacity={0.7} />
@@ -209,7 +209,7 @@ function Scene({ w, h, phase }: { w: number; h: number; phase: Animated.Value })
       })}
       {/* courbes qui se dessinent : routes, trajectoires, tensions */}
       {curves.map((c, i) => (
-        <AnimatedPath key={i} d={c.d} stroke={c.c} strokeWidth={1.6} fill="none" strokeLinecap="round" opacity={0.55}
+        <AnimatedPath key={i} d={c.d} stroke={c.c} strokeWidth={2.6} fill="none" strokeLinecap="round" opacity={0.95}
           strokeDasharray={`${c.len * 0.35} ${c.len * 0.65}`} strokeDashoffset={phase.interpolate({ inputRange: [0, 1], outputRange: [i % 2 ? c.len : 0, i % 2 ? 0 : c.len] }) as any} />
       ))}
       <Rect width={w} height={h} fill="url(#grain)" />
@@ -220,7 +220,7 @@ function Scene({ w, h, phase }: { w: number; h: number; phase: Animated.Value })
 /** Photographie fondue dans la scène : noir et blanc, bords dissous dans le décor (aucune frontière visible). */
 function PhotoBand({ p, w, top }: { p: { src: number; year: string; label: string }; w: number; top: number }) {
   const bh = 380;
-  const gray: any = { filter: "grayscale(1) contrast(1.15) brightness(0.8)" };
+  const gray: any = { filter: "grayscale(1) contrast(1.15) brightness(1.05)" };
   return (
     <View style={{ position: "absolute", left: 0, top, width: w, height: bh }}>
       <Image source={p.src} resizeMode="cover" style={[{ width: w, height: bh, opacity: 0.85 }, gray]} />
@@ -230,15 +230,15 @@ function PhotoBand({ p, w, top }: { p: { src: number; year: string; label: strin
           <LinearGradient id="ps" x1="0" y1="0" x2="1" y2="0"><Stop offset="0" stopColor="#10141B" stopOpacity="1" /><Stop offset="0.22" stopColor="#10141B" stopOpacity="0" /><Stop offset="0.78" stopColor="#10141B" stopOpacity="0" /><Stop offset="1" stopColor="#10141B" stopOpacity="1" /></LinearGradient>
         </Defs>
         <Rect width={w} height={bh} fill="url(#ps)" /><Rect width={w} height={bh} fill="url(#pf)" />
-        <SvgText x={w * 0.06} y={bh * 0.78} fill={STEEL} fontSize="10" fontFamily={F.monoBold} letterSpacing="3">{p.year}</SvgText>
-        <SvgText x={w * 0.06} y={bh * 0.78 + 18} fill="#EDE6D4" fontSize="15" fontFamily={F.title}>{p.label}</SvgText>
+        <SvgText x={w * 0.64} y={bh * 0.78} fill={STEEL} fontSize="10" fontFamily={F.monoBold} letterSpacing="3">{p.year}</SvgText>
+        <SvgText x={w * 0.64} y={bh * 0.78 + 18} fill="#EDE6D4" fontSize="15" fontFamily={F.title}>{p.label}</SvgText>
       </Svg>
     </View>
   );
 }
 
 /** Fond défilant. `strength` règle la visibilité (0.1 discret → 0.6 mis en avant). */
-export function Chronicle({ strength = 0.4 }: { strength?: number }) {
+export function Chronicle({ strength = 0.8 }: { strength?: number }) {
   const { width, height } = useLayout();
   const reduced = useReducedMotion();
   const scroll = useRef(new Animated.Value(0)).current;
@@ -275,13 +275,13 @@ export function ChronicleVeil() {
     <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
       <Defs>
         <LinearGradient id="veil" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={C.bg} stopOpacity="0.8" />
-          <Stop offset="0.4" stopColor={C.bg} stopOpacity="0.3" />
-          <Stop offset="1" stopColor={C.bg} stopOpacity="0.88" />
+          <Stop offset="0" stopColor={C.bg} stopOpacity="0.55" />
+          <Stop offset="0.4" stopColor={C.bg} stopOpacity="0.12" />
+          <Stop offset="1" stopColor={C.bg} stopOpacity="0.72" />
         </LinearGradient>
         <LinearGradient id="side" x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor={C.bg} stopOpacity="0.55" /><Stop offset="0.25" stopColor={C.bg} stopOpacity="0" />
-          <Stop offset="0.75" stopColor={C.bg} stopOpacity="0" /><Stop offset="1" stopColor={C.bg} stopOpacity="0.55" />
+          <Stop offset="0" stopColor={C.bg} stopOpacity="0.4" /><Stop offset="0.25" stopColor={C.bg} stopOpacity="0" />
+          <Stop offset="0.75" stopColor={C.bg} stopOpacity="0" /><Stop offset="1" stopColor={C.bg} stopOpacity="0.4" />
         </LinearGradient>
       </Defs>
       <Rect width="100%" height="100%" fill="url(#veil)" />

@@ -101,7 +101,7 @@ export default function Home() {
 
   return (
     <View style={{ flex: 1 }}>
-    <Screen chronicle={0.42}>
+    <Screen chronicle={0.9}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: S(phone ? 8 : 14) }}>
         <Wordmark size={phone ? 16 : 19} />
         <View style={{ flexDirection: "row", gap: S(4), alignItems: "center" }}>
@@ -143,9 +143,10 @@ export default function Home() {
       <View style={{ marginTop: S(10) }}><Features /></View>
 
       <View style={{ marginTop: S(8), flexDirection: "row", flexWrap: "wrap", gap: S(4), justifyContent: "space-between" }}>
-        <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>
-          {error ? "Serveur injoignable" : cfg ? `Moteur ${cfg.features.engine ? "en ligne" : "injoignable"} · IA ${cfg.features.ai ? "active" : "non configurée (règles du moteur)"} · Voix ${cfg.features.voice ? "active" : "non configurée (canal texte)"}` : "…"}
-        </Text>
+        {user?.role === "owner" ? (
+          <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>
+          {error ? "Serveur injoignable" : cfg ? `Moteur ${cfg.features.engine ? "en ligne" : "injoignable"} · IA ${cfg.features.ai ? "active" : "non configurée"} · Voix ${cfg.features.voice ? "active" : "non configurée"}` : "…"}
+        </Text>) : <View />}
         <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>GEONEX · gratuit · sans publicité</Text>
       </View>
     </Screen>
