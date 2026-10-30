@@ -3,7 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "description": "GEONEX — simulations géopolitiques multijoueurs",
-  "workspaces": ["packages/shared", "services/api"],
+  "workspaces": [
+    "packages/shared",
+    "services/api",
+    "apps/client"
+  ],
   "scripts": {
     "setup:engine": "node scripts/engine.mjs setup",
     "build:shared": "npm run build -w @geonex/shared",
@@ -12,7 +16,11 @@
     "dev:api": "npm run build:shared && npm run dev -w @geonex/api",
     "test:engine": "node scripts/engine.mjs test",
     "test:api": "npm run build:api && npm test -w @geonex/api",
-    "test": "npm run test:engine && npm run test:api"
+    "test": "npm run test:engine && npm run test:api",
+    "dev:client": "npm run web -w @geonex/client",
+    "typecheck:client": "npm run typecheck -w @geonex/client"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

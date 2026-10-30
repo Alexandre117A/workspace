@@ -188,7 +188,7 @@ def resolve_round(world: WorldState, decisions: list[dict[str, Any]], messages: 
     world.rounds = [r for r in world.rounds if r.round != world.round] + [summary]
     shares = camp_shares(world)
     dominant = sorted(world.actors.values(), key=lambda a: -record["powers"][a.id])[:3]
-    troubled = [a for a in world.actors.values() if a.stability < 35 or a.capitals.total() < 90]
+    troubled = [a for a in world.actors.values() if a.stability < 35 or a.capitals.total() < 0.7 * a.initial_capitals.total()]
     president = {
         "balance": shares,
         "dominant": [{"id": a.id, "name": a.name, "power": record["powers"][a.id]} for a in dominant],

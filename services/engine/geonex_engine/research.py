@@ -16,8 +16,25 @@ import httpx
 
 from .models import Fact, SourceRef
 
-USER_AGENT = "GEONEX/0.1 (simulation geopolitique; contact: projet local de developpement)"
 TIMEOUT = 8.0
+
+
+def user_agent() -> str:
+    """Politique Wikimedia : User-Agent descriptif avec contact de l'exploitant
+    (URL ou adresse). À définir via GEONEX_RESEARCH_CONTACT avant usage réel."""
+    contact = os.environ.get("GEONEX_RESEARCH_CONTACT", "").strip()
+    return f"GEONEX/0.1 ({contact or 'contact non configure'}) python-httpx"
+
+
+USER_AGENT = user_agent()
+
+
+def _explain(exc: Exception, service: str) -> str:
+    status = getattr(getattr(exc, "response", None), "status_code", None)
+    if status == 403:
+        hint = "" if os.environ.get("GEONEX_RESEARCH_CONTACT") else " — définissez GEONEX_RESEARCH_CONTACT (URL ou adresse de contact exigée par la politique User-Agent de Wikimedia)"
+        return f"Recherche {service} refusée (403){hint}"
+    return f"Recherche {service} indisponible : {exc.__class__.__name__}"
 
 
 def enabled() -> bool:
@@ -40,7 +57,7 @@ class ResearchResult:
 def wikipedia_context(query: str, lang: str = "fr") -> tuple[Optional[str], Optional[SourceRef], Optional[str]]:
     """Retourne (extrait, source, erreur) pour l'article le plus pertinent."""
     try:
-        with httpx.Client(timeout=TIMEOUT, headers={"User-Agent": USER_AGENT}) as client:
+        with httpx.Client(timeout=TIMEOUT, headers={"User-Agent": user_agent()}) as client:
             search = client.get(
                 f"https://{lang}.wikipedia.org/w/api.php",
                 params={"action": "query", "list": "search", "srsearch": query, "format": "json", "srlimit": 1},
@@ -58,7 +75,7 @@ def wikipedia_context(query: str, lang: str = "fr") -> tuple[Optional[str], Opti
             src = SourceRef(status="confirmed", label=f"Wikipédia — {title}", url=url, retrieved_at=_now())
             return extract, src, None
     except Exception as exc:  # réseau indisponible, quota, format inattendu
-        return None, None, f"Recherche Wikipédia indisponible : {exc.__class__.__name__}"
+        return None, None, _explain(exc, "Wikipédia")
 
 
 _SPARQL = """
@@ -80,12 +97,12 @@ def wikidata_leaders(iso3_codes: list[str]) -> tuple[dict[str, list[tuple[str, s
         return {}, None, None
     values = " ".join(f'"{code}"' for code in iso3_codes)
     try:
-        with httpx.Client(timeout=TIMEOUT + 4, headers={"User-Agent": USER_AGENT, "Accept": "application/sparql-results+json"}) as client:
+        with httpx.Client(timeout=TIMEOUT + 4, headers={"User-Agent": user_agent(), "Accept": "application/sparql-results+json"}) as client:
             resp = client.get("https://query.wikidata.org/sparql", params={"query": _SPARQL % values, "format": "json"})
             resp.raise_for_status()
             rows = resp.json().get("results", {}).get("bindings", [])
     except Exception as exc:
-        return {}, None, f"Recherche Wikidata indisponible : {exc.__class__.__name__}"
+        return {}, None, _explain(exc, "Wikidata")
     leaders: dict[str, list[tuple[str, str]]] = {}
     for row in rows:
         iso = row["iso"]["value"]

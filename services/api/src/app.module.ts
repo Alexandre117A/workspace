@@ -1,4 +1,5 @@
-import { Controller, Get, Module, OnModuleInit, UseGuards } from "@nestjs/common";
+import { Controller, Get, Header, Module, NotFoundException, OnModuleInit, Param, UseGuards } from "@nestjs/common";
+import { readFileSync } from "node:fs";
 import { DURATION_RECOMMENDATION, MIN_DURATION_MINUTES } from "@geonex/shared";
 import { ArchivesController, ArchivesService } from "./archives";
 import { AuthController, AuthGuard, AuthService, OwnerGuard } from "./auth";
@@ -25,6 +26,15 @@ class MetaController {
       engine = { status: "unreachable" };
     }
     return { status: "ok", service: "geonex-api", engine };
+  }
+
+  /** Frontières réelles (Natural Earth, domaine public, via world-atlas), chargées à la demande par le client. */
+  @Get("geo/:name")
+  @Header("cache-control", "public, max-age=604800, immutable")
+  @Header("content-type", "application/json")
+  geo(@Param("name") name: string) {
+    if (!["countries-110m", "countries-50m"].includes(name)) throw new NotFoundException();
+    return readFileSync(require.resolve(`world-atlas/${name}.json`), "utf8");
   }
 
   /** Fonctionnalités réellement disponibles : le client n'affiche jamais une intégration absente comme active. */

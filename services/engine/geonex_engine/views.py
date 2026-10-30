@@ -112,7 +112,7 @@ def president_view(world: WorldState) -> dict[str, Any]:
                               "stability": a.stability, "approval": a.approval, "cohesion": a.cohesion, "engagement": a.engagement}
                              for a in world.actors.values()]
     view["dominant"] = [r for r in view["ranking"][:3]]
-    view["troubled"] = [{"id": a.id, "name": a.name, "stability": a.stability} for a in world.actors.values() if a.stability < 35 or a.capitals.total() < 90]
+    view["troubled"] = [{"id": a.id, "name": a.name, "stability": a.stability} for a in world.actors.values() if a.stability < 35 or a.capitals.total() < 0.7 * a.initial_capitals.total()]
     view["all_events"] = [{"id": e.id, "round": e.round, "kind": e.kind, "title": e.title, "text": e.text, "scope": e.scope} for e in world.events][-60:]
     view["wars"] = [[r.a, r.b] for r in world.relations.values() if r.at_war]
     view["pending_operations"] = sum(1 for o in world.operations if o.status == "pending")
