@@ -36,6 +36,23 @@ export const config = {
   /** Monétisation future : désactivée par défaut, aucune publicité intégrée. */
   ads: { enabled: process.env.GEONEX_ADS_ENABLED === "true", provider: process.env.GEONEX_ADS_PROVIDER ?? null },
   demoMode: process.env.GEONEX_DEMO === "true",
+  /** Adresse publique du service (liens des e-mails : vérification, réinitialisation, invitations). */
+  publicUrl: (process.env.GEONEX_PUBLIC_URL ?? `http://localhost:${process.env.PORT ?? 4000}`).replace(/\/+$/, ""),
+  mail: {
+    /** `smtp` (SMTP_URL ou SMTP_HOST/PORT/USER/PASS), `log` (développement : le message est écrit dans le journal du serveur), sinon aucun envoi. */
+    provider: (process.env.GEONEX_MAIL_PROVIDER ?? (process.env.SMTP_URL || process.env.SMTP_HOST ? "smtp" : "none")).toLowerCase(),
+    from: process.env.GEONEX_MAIL_FROM ?? "",
+    smtpUrl: process.env.SMTP_URL ?? "",
+    host: process.env.SMTP_HOST ?? "",
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: process.env.SMTP_SECURE === "true",
+    user: process.env.SMTP_USER ?? "",
+    pass: process.env.SMTP_PASS ?? "",
+  },
+  /** Bloque l'accès aux parties tant que l'adresse n'est pas vérifiée (à n'activer qu'une fois l'envoi d'e-mails opérationnel). */
+  requireVerified: process.env.GEONEX_REQUIRE_VERIFIED === "true",
+  /** Modération des scénarios proposés à la bibliothèque publique : « on » (défaut) = validation par un administrateur. */
+  moderation: (process.env.GEONEX_MODERATION ?? "on").toLowerCase() !== "off",
   /** Service d'essai (aperçu d'une version à l'étude) : l'interface l'affiche, avec un lien vers la version stable. */
   preview: process.env.GEONEX_PREVIEW === "true",
   stableUrl: process.env.GEONEX_STABLE_URL ?? null,

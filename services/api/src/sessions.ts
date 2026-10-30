@@ -60,6 +60,11 @@ export class SessionsService {
       this.limiter.fail(key);
       throw new NotFoundException("Code de participation invalide.");
     }
+    return this.admit(user, session, key);
+  }
+
+  /** Admission d'un utilisateur dans une session (code de participation ou invitation acceptée) : mêmes règles, un seul chemin. */
+  async admit(user: AuthUser, session: any, limiterKey?: string) {
     const existing = await this.store.participantForUser(session.id, user.id);
     if (existing) return { sessionId: session.id, rejoined: true };
     if (session.status === "finished" || session.status === "expired" || new Date(session.expires_at).getTime() < Date.now()) {
@@ -75,9 +80,16 @@ export class SessionsService {
     } catch {
       return { sessionId: session.id, rejoined: true }; // course entre deux requêtes du même utilisateur
     }
-    this.limiter.reset(key);
+    if (limiterKey) this.limiter.reset(limiterKey);
     await this.broadcastLobby(session.id);
     return { sessionId: session.id, rejoined: false };
+  }
+
+  /** Rejoint une session à partir de son identifiant (invitation acceptée). Le code de participation n'est pas nécessaire. */
+  async admitById(user: AuthUser, sessionId: string) {
+    const session = await this.db.one("SELECT * FROM sessions WHERE id = $1", [sessionId]);
+    if (!session) throw new NotFoundException("Session introuvable.");
+    return this.admit(user, session);
   }
 
   async lobbyData(sessionId: string, me: ParticipantRow) {

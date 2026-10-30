@@ -36,7 +36,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async handleConnection(socket: Socket) {
     try {
       const { token, sessionId } = socket.handshake.auth ?? {};
-      const user = this.auth.verify(String(token ?? ""));
+      const user = await this.auth.authenticate(String(token ?? ""));
       const part = await this.store.participantForUser(String(sessionId), user.id);
       if (!part) throw new Error("not participant");
       socket.data = { userId: user.id, sessionId: part.session_id, participantId: part.id };

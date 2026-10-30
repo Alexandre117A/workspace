@@ -39,13 +39,13 @@ function client(base, token, sessionId, name) {
 
 test("auth, rôles et administration", async () => {
   const { api } = stack;
-  const reg = await api("/auth/register", { method: "POST", body: { email: "joueur@geonex.test", password: "motdepasse-solide", displayName: "Joueur" } });
+  const reg = await api("/auth/register", { method: "POST", body: { email: "joueur@geonex.test", pseudonym: "Joueur", password: "motdepasse-solide9", passwordConfirm: "motdepasse-solide9", acceptTerms: true } });
   assert.equal(reg.status, 201);
   const bad = await api("/auth/login", { method: "POST", body: { email: "joueur@geonex.test", password: "mauvais-mot-de-passe" } });
   assert.equal(bad.status, 401);
   const forbidden = await api("/admin/overview", { token: reg.data.token });
   assert.equal(forbidden.status, 403);
-  const owner = await api("/auth/register", { method: "POST", body: { email: "owner@geonex.test", password: "motdepasse-solide" } });
+  const owner = await api("/auth/register", { method: "POST", body: { email: "owner@geonex.test", pseudonym: "Proprio", password: "motdepasse-solide9", passwordConfirm: "motdepasse-solide9", acceptTerms: true } });
   assert.equal(owner.data.user.role, "owner");
   const ok = await api("/admin/overview", { token: owner.data.token });
   assert.equal(ok.status, 200);

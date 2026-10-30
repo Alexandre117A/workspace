@@ -255,3 +255,76 @@ export const SOCKET_EVENTS = {
   error: "error_message",
   requests: "requests",
 } as const;
+
+
+// ------------------------------------------------------------------ comptes (pseudonyme, mot de passe, profil)
+
+export const PSEUDONYM_MIN = 3;
+export const PSEUDONYM_MAX = 24;
+export const PASSWORD_MIN = 10;
+/** Lettres (accents compris), chiffres, point, tiret et tiret bas : pas d'espace ni de symbole, pour un pseudonyme lisible et recherchable. */
+export const PSEUDONYM_RE = /^[\p{L}\p{N}][\p{L}\p{N}._-]*$/u;
+
+/** Problèmes d'un pseudonyme (liste vide = valide). Mêmes règles côté client (aide à la saisie) et côté serveur (autorité). */
+export function pseudonymIssues(raw: string): string[] {
+  const v = raw.trim();
+  const out: string[] = [];
+  if (v.length < PSEUDONYM_MIN) out.push(`Au moins ${PSEUDONYM_MIN} caractères.`);
+  if (v.length > PSEUDONYM_MAX) out.push(`${PSEUDONYM_MAX} caractères au plus.`);
+  if (v.length && !PSEUDONYM_RE.test(v)) out.push("Lettres, chiffres, point, tiret et tiret bas uniquement (sans espace).");
+  return out;
+}
+
+/** Exigences du mot de passe : 10 caractères au moins, une lettre et un chiffre. */
+export function passwordIssues(pw: string): string[] {
+  const out: string[] = [];
+  if (pw.length < PASSWORD_MIN) out.push(`Au moins ${PASSWORD_MIN} caractères.`);
+  if (!/\p{L}/u.test(pw)) out.push("Au moins une lettre.");
+  if (!/\p{N}/u.test(pw)) out.push("Au moins un chiffre.");
+  if (pw.length > 200) out.push("200 caractères au plus.");
+  return out;
+}
+
+const emailField = z.string().trim().toLowerCase().email("Adresse e-mail invalide.").max(200);
+const pseudonymField = z.string().trim().superRefine((v, ctx) => {
+  for (const m of pseudonymIssues(v)) ctx.addIssue({ code: "custom", message: m });
+});
+const passwordField = z.string().superRefine((v, ctx) => {
+  for (const m of passwordIssues(v)) ctx.addIssue({ code: "custom", message: m });
+});
+
+export const registerSchema = z
+  .object({ email: emailField, pseudonym: pseudonymField, password: passwordField, passwordConfirm: z.string(), acceptTerms: z.literal(true, { message: "Acceptez les conditions d'utilisation." }) })
+  .refine((v) => v.password === v.passwordConfirm, { path: ["passwordConfirm"], message: "Les mots de passe ne correspondent pas." });
+export const loginSchema = z.object({ email: emailField, password: z.string().min(1).max(200), remember: z.boolean().optional().default(false) });
+export const forgotSchema = z.object({ email: emailField });
+export const resetSchema = z
+  .object({ token: z.string().min(20).max(200), password: passwordField, passwordConfirm: z.string() })
+  .refine((v) => v.password === v.passwordConfirm, { path: ["passwordConfirm"], message: "Les mots de passe ne correspondent pas." });
+export const tokenSchema = z.object({ token: z.string().min(20).max(200) });
+export const profileSchema = z.object({
+  pseudonym: pseudonymField.optional(),
+  avatarColor: z.enum(["navy", "atlas", "brass", "red", "stone"]).optional(),
+  notifications: z.object({ invitations: z.boolean().optional(), product: z.boolean().optional() }).optional(),
+});
+export const emailChangeSchema = z.object({ email: emailField, password: z.string().min(1).max(200) });
+export const passwordChangeSchema = z.object({ current: z.string().min(1).max(200), next: passwordField });
+export const deleteAccountSchema = z.object({ password: z.string().max(200).optional() });
+
+export const inviteSchema = z.object({
+  pseudonym: z.string().trim().max(PSEUDONYM_MAX).optional(),
+  email: emailField.optional(),
+  link: z.boolean().optional(),
+}).refine((v) => !!v.pseudonym || !!v.email || v.link === true, { message: "Indiquez un pseudonyme, une adresse e-mail ou demandez un lien." });
+
+export const publishSchema = z.object({
+  title: z.string().trim().min(5).max(120),
+  description: z.string().trim().min(40).max(2000),
+  keywords: z.array(z.string().trim().min(2).max(30)).max(8).default([]),
+});
+
+/** Classification de complexité d'un scénario, fondée sur une donnée réelle : le nombre d'acteurs. */
+export type Complexity = "Initiation" | "Intermédiaire" | "Avancé" | "Expert";
+export function complexityOf(actorCount: number): Complexity {
+  return actorCount <= 5 ? "Initiation" : actorCount <= 7 ? "Intermédiaire" : actorCount <= 9 ? "Avancé" : "Expert";
+}

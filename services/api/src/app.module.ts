@@ -2,20 +2,23 @@ import { Controller, Get, Header, Module, NotFoundException, OnModuleInit, Param
 import { readFileSync } from "node:fs";
 import { DURATION_RECOMMENDATION, MIN_DURATION_MINUTES } from "@geonex/shared";
 import { ArchivesController, ArchivesService } from "./archives";
-import { AuthController, AuthGuard, AuthService, OwnerGuard } from "./auth";
+import { AuthController, AuthGuard, AuthService, OptionalAuthGuard, OwnerGuard } from "./auth";
 import { config } from "./config";
 import { Db } from "./db";
 import { EngineClient } from "./engine.client";
 import { GameGateway } from "./game.gateway";
 import { GameService } from "./game.service";
 import { Hub } from "./hub";
+import { LibraryController, LibraryService, ModerationController, PublicationController } from "./library";
+import { Mailer } from "./mailer";
 import { ScenariosController, ScenariosService } from "./scenarios";
 import { SessionsController, SessionsService } from "./sessions";
+import { InvitationLinkController, SpaceController, SpaceService } from "./space";
 import { Store } from "./store";
 
 @Controller()
 class MetaController {
-  constructor(private readonly engine: EngineClient) {}
+  constructor(private readonly engine: EngineClient, private readonly mailer: Mailer) {}
 
   @Get("health")
   async health() {
@@ -74,6 +77,7 @@ class MetaController {
         ads: config.ads.enabled,
         demo: config.demoMode,
         preview: config.preview,
+        mail: this.mailer.configured,
       },
       stableUrl: config.preview ? config.stableUrl : null,
     };
@@ -107,8 +111,8 @@ class AdminController {
 }
 
 @Module({
-  controllers: [MetaController, AdminController, AuthController, ScenariosController, SessionsController, ArchivesController],
-  providers: [Db, Store, Hub, EngineClient, AuthService, AuthGuard, OwnerGuard, ScenariosService, SessionsService, GameService, ArchivesService, GameGateway],
+  controllers: [MetaController, AdminController, AuthController, ScenariosController, SessionsController, ArchivesController, LibraryController, PublicationController, ModerationController, SpaceController, InvitationLinkController],
+  providers: [Db, Store, Hub, EngineClient, Mailer, AuthService, AuthGuard, OptionalAuthGuard, OwnerGuard, ScenariosService, SessionsService, GameService, ArchivesService, GameGateway, LibraryService, SpaceService],
 })
 export class AppModule implements OnModuleInit {
   constructor(private readonly db: Db, private readonly game: GameService) {}
