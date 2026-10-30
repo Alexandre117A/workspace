@@ -147,8 +147,8 @@ export function ChronicleVeil() {
     <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
       <Defs>
         <LinearGradient id="veil" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={C.bg} stopOpacity="0.55" />
-          <Stop offset="0.4" stopColor={C.bg} stopOpacity="0.42" />
+          <Stop offset="0" stopColor={C.bg} stopOpacity="0.62" />
+          <Stop offset="0.4" stopColor={C.bg} stopOpacity="0.5" />
           <Stop offset="1" stopColor={C.bg} stopOpacity="0.75" />
         </LinearGradient>
         <LinearGradient id="side" x1="0" y1="0" x2="1" y2="0">

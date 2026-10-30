@@ -147,7 +147,7 @@ export default function Home() {
           <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>
           {error ? "Serveur injoignable" : cfg ? `Moteur ${cfg.features.engine ? "en ligne" : "injoignable"}` : "…"}
         </Text>) : <View />}
-        <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>GEONEX · gratuit · sans publicité</Text>
+        <Pressable onPress={() => router.push("/credits")} accessibilityRole="link"><Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>GEONEX · gratuit · sans publicité · crédits des images</Text></Pressable>
       </View>
     </Screen>
     {intro ? <Intro onDone={() => setIntro(false)} /> : null}

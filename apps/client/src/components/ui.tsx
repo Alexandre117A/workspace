@@ -54,16 +54,16 @@ export function Screen({ children, scroll = true, style, max = 1180, chronicle =
 }
 
 export function H1({ children, style }: { children: ReactNode; style?: StyleProp<TextStyle> }) {
-  return <Text accessibilityRole="header" style={[{ fontFamily: F.title, fontSize: 40, color: C.text, letterSpacing: 0.4, lineHeight: 44 }, style]}>{children}</Text>;
+  return <Text accessibilityRole="header" style={[{ fontFamily: F.title, fontSize: 40, color: C.text, letterSpacing: 0.4, lineHeight: 44, textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 7, textShadowOffset: { width: 0, height: 1 } }, style]}>{children}</Text>;
 }
 export function H2({ children, style }: { children: ReactNode; style?: StyleProp<TextStyle> }) {
-  return <Text accessibilityRole="header" style={[{ fontFamily: F.title, fontSize: 26, color: C.text, lineHeight: 30 }, style]}>{children}</Text>;
+  return <Text accessibilityRole="header" style={[{ fontFamily: F.title, fontSize: 26, color: C.text, lineHeight: 30, textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 7, textShadowOffset: { width: 0, height: 1 } }, style]}>{children}</Text>;
 }
 export function Label({ children, style, color = C.muted }: { children: ReactNode; style?: StyleProp<TextStyle>; color?: string }) {
-  return <Text style={[{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 2.2, color, textTransform: "uppercase" }, style]}>{children}</Text>;
+  return <Text style={[{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 2.2, color, textTransform: "uppercase", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 7, textShadowOffset: { width: 0, height: 1 } }, style]}>{children}</Text>;
 }
 export function Body({ children, style, muted, numberOfLines }: { children: ReactNode; style?: StyleProp<TextStyle>; muted?: boolean; numberOfLines?: number }) {
-  return <Text numberOfLines={numberOfLines} style={[{ fontFamily: F.sans, fontSize: 15, lineHeight: 22, color: muted ? C.muted : C.text }, style]}>{children}</Text>;
+  return <Text numberOfLines={numberOfLines} style={[{ fontFamily: F.sans, fontSize: 15, lineHeight: 22, color: muted ? "#A9B2BE" : C.text, textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 7, textShadowOffset: { width: 0, height: 1 } }, style]}>{children}</Text>;
 }
 export function Mono({ children, style }: { children: ReactNode; style?: StyleProp<TextStyle> }) {
   return <Text style={[{ fontFamily: F.mono, fontSize: 13, color: C.text }, style]}>{children}</Text>;

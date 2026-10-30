@@ -23,6 +23,7 @@
     "typecheck:client": "npm run typecheck -w @geonex/client",
     "photos": "node scripts/engine.mjs ../../scripts/fetch-commons.py",
     "photos:nasa": "node scripts/engine.mjs ../../scripts/fetch-nasa.py",
+    "photos:shrink": "node scripts/engine.mjs ../../scripts/shrink-photos.py",
     "share": "node scripts/share.mjs"
   },
   "engines": {
