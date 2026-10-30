@@ -40,7 +40,7 @@ export default function Prepare() {
           router.replace(`/session/${s.sessionId}`);
           return;
         }
-        if (j.status !== "failed") setTimeout(tick, 900);
+        if (j.status !== "failed") setTimeout(tick, 300);
       } catch (e: any) {
         if (alive) setError(e.message);
       }

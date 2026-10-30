@@ -17,7 +17,7 @@ import httpx
 
 from .models import Fact, SourceRef
 
-TIMEOUT = 8.0
+TIMEOUT = 5.0
 
 
 def user_agent() -> str:
@@ -143,9 +143,36 @@ def latest_leaders(rows: list[dict]) -> dict[str, list[tuple[str, str]]]:
     return leaders
 
 
+_leaders_cache: dict[str, list[tuple[str, str]]] = {}
+_leaders_src: Optional[SourceRef] = None
+_leaders_at = 0.0
+
+
+def warm_leaders() -> None:
+    """Précharge en une seule requête les dirigeants de tous les États connus (au démarrage, en arrière-plan) :
+    les préparations de scénario n'attendent alors plus Wikidata."""
+    global _leaders_src, _leaders_at
+    from .reference_data import COUNTRIES
+
+    if not enabled():
+        return
+    codes = [c.iso3 for c in COUNTRIES]
+    leaders, src, _ = _fetch_leaders(codes, timeout=25.0)
+    if src:
+        for code in codes:
+            _leaders_cache[code] = leaders.get(code, [])
+        _leaders_src, _leaders_at = src, time.time()
+
+
 def wikidata_leaders(iso3_codes: list[str]) -> tuple[dict[str, list[tuple[str, str]]], Optional[SourceRef], Optional[str]]:
     if not iso3_codes:
         return {}, None, None
+    if _leaders_src and time.time() - _leaders_at < 24 * 3600 and all(c in _leaders_cache for c in iso3_codes):
+        return {c: _leaders_cache[c] for c in iso3_codes if _leaders_cache[c]}, _leaders_src, None
+    return _fetch_leaders(iso3_codes)
+
+
+def _fetch_leaders(iso3_codes: list[str], timeout: float = TIMEOUT + 2) -> tuple[dict[str, list[tuple[str, str]]], Optional[SourceRef], Optional[str]]:
     if (msg := _blocked("Wikidata")):
         return {}, None, msg
     key = ("wd", tuple(sorted(iso3_codes)))
@@ -153,7 +180,7 @@ def wikidata_leaders(iso3_codes: list[str]) -> tuple[dict[str, list[tuple[str, s
         return hit
     values = " ".join(f'"{code}"' for code in iso3_codes)
     try:
-        with httpx.Client(timeout=TIMEOUT + 4, headers={"User-Agent": user_agent(), "Accept": "application/sparql-results+json"}) as client:
+        with httpx.Client(timeout=timeout, headers={"User-Agent": user_agent(), "Accept": "application/sparql-results+json"}) as client:
             resp = client.get("https://query.wikidata.org/sparql", params={"query": _SPARQL % values, "format": "json"})
             resp.raise_for_status()
             rows = resp.json().get("results", {}).get("bindings", [])
@@ -171,14 +198,20 @@ def research_contemporary(topic: str, iso3_codes: list[str]) -> ResearchResult:
     if not enabled():
         result.errors.append("Recherche externe désactivée (GEONEX_RESEARCH=off) : contexte non vérifié.")
         return result
-    extract, src, err = wikipedia_context(topic)
+    # Les deux recherches partent en parallèle : on n'attend que la plus lente.
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        wp = pool.submit(wikipedia_context, topic)
+        wd = pool.submit(wikidata_leaders, iso3_codes)
+        extract, src, err = wp.result()
+        leaders, lsrc, lerr = wd.result()
     if err:
         result.errors.append(err)
     if extract and src:
         result.summary = extract
         result.sources.append(src)
         result.facts.append(Fact(text=extract[:600], source=src))
-    leaders, lsrc, lerr = wikidata_leaders(iso3_codes)
     if lerr:
         result.errors.append(lerr)
     if lsrc:

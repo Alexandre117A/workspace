@@ -23,6 +23,13 @@ from .resolution import resolve_round
 app = FastAPI(title="GEONEX Engine", version="0.1.0")
 
 
+@app.on_event("startup")
+def _warm() -> None:
+    import threading
+
+    threading.Thread(target=research.warm_leaders, daemon=True, name="warm-leaders").start()
+
+
 def _auth(x_engine_token: Optional[str] = Header(default=None)) -> None:
     expected = os.environ.get("GEONEX_ENGINE_TOKEN")
     if expected and x_engine_token != expected:

@@ -20,7 +20,8 @@
     "test:api": "npm run build:api && npm test -w @geonex/api",
     "test": "npm run test:engine && npm run test:api",
     "dev:client": "npm run web -w @geonex/client",
-    "typecheck:client": "npm run typecheck -w @geonex/client"
+    "typecheck:client": "npm run typecheck -w @geonex/client",
+    "photos": "node scripts/engine.mjs ../../scripts/fetch-commons.py"
   },
   "engines": {
     "node": ">=20"
