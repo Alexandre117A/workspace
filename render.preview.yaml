@@ -1,0 +1,31 @@
+# APERÇU de la version à l'étude (branche v2) : un SECOND service gratuit sur Render, à côté de la version stable (render.yaml).
+# Ce fichier n'est lu que si vous le désignez : Render → New → Blueprint → branche « v2 » → chemin du fichier « render.preview.yaml ».
+# Mode d'emploi, limites de l'offre gratuite et suppression : docs/DEPLOIEMENT.md, section « Aperçu en ligne de la v2 ».
+services:
+  - type: web
+    name: geonex-v2
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: v2
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEONEX_PREVIEW
+        value: "true"
+      - key: GEONEX_STABLE_URL
+        value: https://geonex.onrender.com
+      - key: GEONEX_JWT_SECRET
+        generateValue: true
+      - key: GEONEX_ENGINE_TOKEN
+        generateValue: true
+      # Base de l'essai : une « branche » Neon distincte (gratuite) pour ne pas mélanger les comptes avec la version stable.
+      - key: DATABASE_URL
+        sync: false
+      - key: GEONEX_OWNER_EMAILS
+        sync: false
+      - key: GEONEX_RESEARCH_CONTACT
+        sync: false

@@ -36,6 +36,9 @@ export const config = {
   /** Monétisation future : désactivée par défaut, aucune publicité intégrée. */
   ads: { enabled: process.env.GEONEX_ADS_ENABLED === "true", provider: process.env.GEONEX_ADS_PROVIDER ?? null },
   demoMode: process.env.GEONEX_DEMO === "true",
+  /** Service d'essai (aperçu d'une version à l'étude) : l'interface l'affiche, avec un lien vers la version stable. */
+  preview: process.env.GEONEX_PREVIEW === "true",
+  stableUrl: process.env.GEONEX_STABLE_URL ?? null,
 };
 
 export function ms(seconds: number): number {

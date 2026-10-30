@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Image, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Linking, Platform, Pressable, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { isValidJoinCode } from "@geonex/shared";
@@ -125,6 +125,15 @@ export default function Home() {
   return (
     <View style={{ flex: 1 }}>
     <Screen chronicle={0.9} scrollRef={scroller}>
+      {cfg?.features.preview ? (
+        <View accessibilityRole="alert" style={{ marginBottom: S(4), flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: S(3), backgroundColor: "#F3F0E9", borderLeftWidth: 4, borderLeftColor: C.brass, paddingVertical: 10, paddingHorizontal: S(4) }}>
+          <Text style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 2, color: "#7A6428", textTransform: "uppercase" }}>Version d'essai</Text>
+          <Text style={{ flex: 1, minWidth: 220, fontFamily: F.sans, fontSize: 13.5, color: C.ink }}>Vous visitez la refonte « Atlas stratégique », encore à l'étude.</Text>
+          {cfg.stableUrl ? (
+            <Pressable accessibilityRole="link" onPress={() => Linking.openURL(cfg.stableUrl as string)}><Text style={{ fontFamily: F.monoBold, fontSize: 11, letterSpacing: 1.6, color: C.ink, textDecorationLine: "underline" }}>VERSION STABLE ›</Text></Pressable>
+          ) : null}
+        </View>
+      ) : null}
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: S(phone ? 8 : 12) }}>
         <Wordmark size={phone ? 16 : 19} />
         <View style={{ flexDirection: "row", gap: S(4), alignItems: "center" }}>

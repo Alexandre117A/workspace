@@ -73,7 +73,9 @@ class MetaController {
         voice: !!(config.livekit.url && config.livekit.apiKey && config.livekit.apiSecret),
         ads: config.ads.enabled,
         demo: config.demoMode,
+        preview: config.preview,
       },
+      stableUrl: config.preview ? config.stableUrl : null,
     };
   }
 }

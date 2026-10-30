@@ -53,3 +53,5 @@ Développée sur la branche `v2`, **sans toucher à `main`** : le site public (h
 que `v2` n'est pas fusionnée. Pour l'essayer en local : `git switch v2` puis `Lancer GEONEX.bat`. Pour la mettre en ligne
 après approbation : `git switch main && git merge v2 && git push origin main`. Pour y renoncer : `git switch main`.
 Description : `docs/ATLAS.md`.
+
+Aperçu en ligne (second service gratuit, à côté de la version stable) : `docs/DEPLOIEMENT.md`, section « Aperçu en ligne de la v2 » ; définition : `render.preview.yaml`.

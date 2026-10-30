@@ -41,6 +41,47 @@ Vérifié ici : API + moteur + site en conditions de production (`NODE_ENV=produ
 
 Rien d'autre n'est déployé ni publié. Architecture générale :
 
+## Aperçu en ligne de la v2 (second service gratuit, à côté de la version stable)
+
+Objectif : voir et faire essayer la refonte « Atlas stratégique » en ligne **sans toucher à la version stable** (`geonex`, branche `main`).
+Le second service s'appelle `geonex-v2`, suit la branche `v2` et se met à jour à chaque envoi sur `v2`. Il affiche un bandeau « Version d'essai »
+avec un lien vers la version stable. Définition : `render.preview.yaml`.
+
+### Étapes (une dizaine de minutes, avec vos comptes)
+1. **Base séparée (recommandé)** : Neon → votre projet → *Branches* → *Create branch* (nom `apercu-v2`, depuis `main`) → *Connect* → copiez la
+   chaîne de connexion **directe** (pas « pooled »), avec `sslmode=require&channel_binding=require`. Sans cela, l'essai partagerait les comptes
+   et les parties de la version stable.
+2. **Render** → *New* → *Blueprint* → dépôt `Alexandre117A/workspace` → branche **`v2`** → chemin du fichier **`render.preview.yaml`**.
+   Si Render ne propose pas de chemin personnalisé : *New* → *Web Service* → même dépôt, branche `v2`, *Runtime* Docker, région Frankfurt, offre
+   *Free*, *Health Check Path* `/api/health`, puis les variables du fichier `render.preview.yaml` (`NODE_ENV=production`, `GEONEX_PREVIEW=true`,
+   `GEONEX_STABLE_URL=https://geonex.onrender.com`, `GEONEX_JWT_SECRET` et `GEONEX_ENGINE_TOKEN` = deux longues valeurs aléatoires distinctes).
+3. Renseignez `DATABASE_URL` (étape 1) ; laissez `GEONEX_OWNER_EMAILS` et `GEONEX_RESEARCH_CONTACT` vides ou copiez ceux de la version stable ; *Apply*.
+4. Contrôle une fois en ligne (la première construction prend 5 à 10 minutes) :
+   ```bash
+   node scripts/smoke.mjs https://geonex-v2.onrender.com
+   ```
+   (adresse exacte affichée par Render). Le script crée un compte invité et une session de test.
+
+### Ce que ce second service implique
+- **Heures gratuites partagées** : Render offre 750 heures d'instance par mois **pour tout l'espace de travail**, pas par service. Un service gratuit
+  gardé éveillé 24 h/24 (c'est le rôle de `keepalive.yml` pour la version stable) en consomme 720 à 744. L'aperçu s'endort après 15 minutes sans
+  visite et ne consomme que le temps où il est éveillé, mais **la marge est de 6 à 30 heures par mois** : au-delà, Render suspend les services gratuits
+  jusqu'au mois suivant. Pendant l'essai, soit supprimez l'aperçu dès que vous avez décidé, soit coupez le maintien en éveil de la version stable
+  (supprimez la variable `GEONEX_PUBLIC_URL` du dépôt : elle s'endormira après 15 minutes et se réveillera en environ une minute).
+- L'aperçu n'a pas de maintien en éveil : premier chargement ≈ 1 minute après une période d'inactivité.
+- Ce qui est partagé : le dépôt, rien d'autre (sauf la base si vous sautez l'étape 1). Les secrets sont distincts.
+
+### Fin de l'essai
+- **Vous adoptez la v2** : `git switch main && git merge v2 && git push origin main` (la version stable passe en v2 ; `v1.0` reste récupérable,
+  voir `docs/VERSIONS.md`), puis supprimez le service `geonex-v2` (Render → *Settings* → *Delete Service*) et la branche Neon `apercu-v2`.
+- **Vous renoncez** : supprimez le service `geonex-v2` et la branche Neon ; `main` n'a jamais changé.
+
+### Vérifié / non vérifié
+- Vérifié : la v2 passe les tests automatiques (moteur, API) sur GitHub, le fichier `render.preview.yaml` est valide, les dépendances sont
+  cohérentes avec le fichier de verrouillage (`npm ci`), la v2 tourne en local avec le mode essai.
+- Non vérifié : la construction Docker de la v2 sur Render (Docker n'est pas installé ici ; la v1 a été construite avec le même `Dockerfile`),
+  le comportement avec la base Neon d'essai, la présence d'un champ « chemin du fichier » dans l'interface Render au moment où vous créez le Blueprint.
+
 ## Architecture à héberger
 | Composant | Rôle | Fichier |
 |---|---|---|

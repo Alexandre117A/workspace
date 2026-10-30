@@ -6,7 +6,8 @@ import { useAuth } from "./auth";
 export interface AppConfig {
   minDurationMinutes: number;
   recommendation: string;
-  features: { engine: boolean; ai: boolean; research: boolean; voice: boolean; ads: boolean; demo: boolean };
+  features: { engine: boolean; ai: boolean; research: boolean; voice: boolean; ads: boolean; demo: boolean; preview?: boolean };
+  stableUrl?: string | null;
 }
 
 let cached: AppConfig | null = null;
