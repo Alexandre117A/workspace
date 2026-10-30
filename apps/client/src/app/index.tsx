@@ -4,6 +4,7 @@ import { Link, router } from "expo-router";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 import { formatJoinCode, isValidJoinCode } from "@geonex/shared";
 import { Wordmark } from "../components/Brand";
+import { Intro } from "../components/Intro";
 import { Body, Btn, Field, Label, Notice, Screen, useLayout } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
@@ -77,6 +78,7 @@ export default function Home() {
   const { phone, desktop } = useLayout();
   const [code, setCode] = useState("");
   const [joining, setJoining] = useState(false);
+  const [intro, setIntro] = useState(true);
   const [joinError, setJoinError] = useState<string | null>(null);
 
   const join = async () => {
@@ -97,7 +99,8 @@ export default function Home() {
   const go = (path: string) => (user ? path : `/auth?next=${encodeURIComponent(path)}`);
 
   return (
-    <Screen>
+    <View style={{ flex: 1 }}>
+    <Screen chronicle={0.42}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: S(phone ? 8 : 14) }}>
         <Wordmark size={phone ? 16 : 19} />
         <View style={{ flexDirection: "row", gap: S(4), alignItems: "center" }}>
@@ -143,5 +146,7 @@ export default function Home() {
         <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>GEONEX · gratuit · sans publicité</Text>
       </View>
     </Screen>
+    {intro ? <Intro onDone={() => setIntro(false)} /> : null}
+    </View>
   );
 }

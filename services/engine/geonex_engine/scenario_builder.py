@@ -22,7 +22,7 @@ from .models import (
     SourceRef, Theatre, Zone, relation_key,
 )
 from .probability import rng_for
-from .reference_data import BY_ISO3, KNOWN_THEATRES, detect_countries, nearest_countries, normalize
+from .reference_data import BY_ISO3, KNOWN_THEATRES, briefs_for, detect_countries, nearest_countries, normalize
 from .research import research_contemporary
 from .scenario_common import (
     actor_from_ref, assign_camps, default_zone, make_objectives, make_red_lines, relations_for, theatre_center,
@@ -168,7 +168,7 @@ def _contemporary_rules(prompt: str, players: int, seed: int, progress: Progress
         theatre=Theatre(name=zones[0].name if theatres else f"Théâtre {a_actor.name}" + (f"–{b_actor.name}" if b_actor else ""),
                         iso_n3=iso_theatre, center=(zones[0].region.lon, zones[0].region.lat) if zones[0].region.lon is not None else theatre_center(actors),
                         maritime=any(z.domain == "maritime" for z in zones)),
-        camps=camps,
+        camps=camps, universe_notes=chr(10).join(briefs_for([z.name for z in zones])),
     )
     notes = ["Génération par règles (sans IA) : acteurs et capitaux issus de la table de référence GEONEX (estimations)."]
     notes += research.errors

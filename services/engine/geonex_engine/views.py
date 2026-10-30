@@ -39,7 +39,7 @@ def public_view(world: WorldState) -> dict[str, Any]:
     return {
         "level": "public",
         "setting": {"mode": s.mode, "title": s.title, "topic": s.topic, "start_label": s.start_label, "era": s.era,
-                    "theatre": s.theatre.model_dump(), "camps": s.camps, "special_rules": s.special_rules, "knowledge_cutoff": s.knowledge_cutoff},
+                    "theatre": s.theatre.model_dump(), "camps": s.camps, "notes": s.universe_notes if s.mode != "fictional" else "", "special_rules": s.special_rules, "knowledge_cutoff": s.knowledge_cutoff},
         "round": world.round,
         "rounds_planned": world.plan.rounds_planned,
         "sim_time": sim_time_label(world),

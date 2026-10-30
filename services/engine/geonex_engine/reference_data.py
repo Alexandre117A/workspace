@@ -217,3 +217,31 @@ def nearest_countries(refs: list[CountryRef], exclude: set[str], k: int) -> list
         scored.append((d, c))
     scored.sort(key=lambda item: item[0])
     return [c for d, c in scored[:k] if d < 3500]
+
+
+# Repères généraux sur les théâtres connus (sources publiques ; présentés comme repères, à vérifier).
+THEATRE_BRIEFS: dict[str, list[str]] = {
+    "Détroit de Taïwan": ["Bras de mer d'environ 130 km à son point le plus étroit, entre l'île de Taïwan et le continent.", "Axe majeur du commerce maritime d'Asie de l'Est.", "Taïwan occupe une place centrale dans la production mondiale de semi-conducteurs avancés.", "Statut de l'île contesté : Pékin la revendique, Taipei exerce un gouvernement distinct."],
+    "Détroit d'Ormuz": ["Passage d'environ 33 km de large à son point le plus étroit, entre l'Iran et Oman.", "Environ un cinquième de la consommation mondiale de pétrole y transite.", "Plusieurs marines étrangères sont présentes dans le Golfe Persique."],
+    "Front du Donbass": ["Région industrielle et minière de l'est de l'Ukraine.", "Ligne de front d'un conflit ouvert depuis 2014, étendu en 2022."],
+    "Ligne de contrôle (Cachemire)": ["Ligne de cessez-le-feu de fait d'environ 740 km entre les zones administrées par l'Inde et par le Pakistan.", "Les deux États sont dotés de l'arme nucléaire."],
+    "Zone démilitarisée": ["Bande d'environ 4 km de large, créée par l'armistice de 1953.", "Les deux Corées sont toujours techniquement en guerre, faute de traité de paix."],
+    "Mer de Chine méridionale": ["Route maritime parmi les plus fréquentées du monde.", "Revendications territoriales concurrentes de plusieurs États riverains.", "Riche en ressources halieutiques et en hydrocarbures potentiels."],
+    "Corridor de Suwałki": ["Bande d'environ 65 km entre la Pologne et la Lituanie, reliant l'enclave russe de Kaliningrad à la Biélorussie.", "Seul passage terrestre direct entre les États baltes et le reste de l'OTAN."],
+    "Ligne bleue": ["Ligne de retrait tracée par l'ONU en 2000 entre le Liban et Israël.", "La FINUL y déploie des Casques bleus."],
+    "Sahara occidental": ["Territoire disputé entre le Maroc et le Front Polisario, sans statut définitif.", "Inscrit à l'ONU comme territoire non autonome."],
+    "Bassin du Nil (GERD)": ["Le Grand barrage de la Renaissance, sur le Nil Bleu, est le plus grand barrage hydroélectrique d'Afrique.", "L'Égypte dépend du Nil pour l'essentiel de son eau douce."],
+    "Corridor du Syunik": ["Province du sud de l'Arménie, séparant l'Azerbaïdjan de son exclave du Nakhitchevan."],
+    "Mer des Caraïbes": ["Zone d'influence historique des États-Unis.", "Voies d'accès au canal de Panama."],
+    "Îles Malouines": ["Archipel de l'Atlantique Sud administré par le Royaume-Uni et revendiqué par l'Argentine.", "Théâtre de la guerre de 1982."],
+    "Pacifique occidental": ["Première chaîne d'îles : Japon, Taïwan, Philippines.", "Forte concentration de forces navales de plusieurs grandes puissances."],
+}
+
+
+def briefs_for(names: list[str]) -> list[str]:
+    out: list[str] = []
+    for n in names:
+        for line in THEATRE_BRIEFS.get(n, []):
+            if line not in out:
+                out.append(line)
+    return out

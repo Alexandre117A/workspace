@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, Line, Pattern, Rect } from "react-native-svg";
 import { C, F, S } from "../theme";
+import { Chronicle, ChronicleVeil } from "./Chronicle";
 
 export function useLayout() {
   const { width, height } = useWindowDimensions();
@@ -41,11 +42,12 @@ export function Backdrop({ dense = false }: { dense?: boolean }) {
   );
 }
 
-export function Screen({ children, scroll = true, style, max = 1180 }: { children: ReactNode; scroll?: boolean; style?: StyleProp<ViewStyle>; max?: number }) {
+export function Screen({ children, scroll = true, style, max = 1180, chronicle = 0.3 }: { children: ReactNode; scroll?: boolean; style?: StyleProp<ViewStyle>; max?: number; chronicle?: number }) {
   const body = <View style={[{ width: "100%", maxWidth: max, alignSelf: "center", paddingHorizontal: S(4), paddingVertical: S(5) }, style]}>{children}</View>;
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Backdrop />
+      {chronicle > 0 ? <><Chronicle strength={chronicle} /><ChronicleVeil /></> : null}
       <SafeAreaView style={{ flex: 1 }}>
         {scroll ? <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">{body}</ScrollView> : body}
       </SafeAreaView>

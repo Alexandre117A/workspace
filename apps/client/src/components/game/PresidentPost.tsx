@@ -8,6 +8,7 @@ import { Ack, fmtClock, remaining, useNow } from "../../lib/game";
 import { C, F, S } from "../../theme";
 import { RoundMark, TopBar } from "./chrome";
 import { ReportBody } from "./phases";
+import { Situation } from "./Situation";
 
 const name = (view: any, id: string | null | undefined) => view?.actors?.find((a: any) => a.id === id)?.name ?? id ?? "—";
 
@@ -99,7 +100,7 @@ function RomeComposer({ emit }: { emit: (e: string, p?: unknown) => Promise<Ack>
 export function PresidentPost({ game, emit, title }: { game: any; emit: (e: string, p?: unknown) => Promise<Ack>; title: string }) {
   const { width, desktop, phone } = useLayout();
   const now = useNow(500);
-  const [sheet, setSheet] = useState<null | "rome" | "actors" | "report">(null);
+  const [sheet, setSheet] = useState<null | "rome" | "actors" | "report" | "situation">(null);
   const [speech, setSpeech] = useState(45);
   const [error, setError] = useState<string | null>(null);
   const { view, runtime, offset, lobby } = game;
@@ -121,6 +122,7 @@ export function PresidentPost({ game, emit, title }: { game: any; emit: (e: stri
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: S(2) }}>
         <Btn small label={runtime.paused ? "Reprendre la séance" : "Suspendre la séance"} onPress={() => act("president:pause", { paused: !runtime.paused })} />
         <Btn small variant="ghost" label="Proposer un Communiqué de Rome" accent={C.red} onPress={() => setSheet("rome")} />
+        <Btn small variant="ghost" label="Dossier de situation" accent={C.steel} onPress={() => setSheet("situation")} />
       </View>
       {runtime.phase === "assembly" && a ? (
         <View style={{ gap: S(2) }}>
@@ -215,6 +217,7 @@ export function PresidentPost({ game, emit, title }: { game: any; emit: (e: stri
         </ScrollView>
       </SafeAreaView>
       <Sheet visible={sheet === "rome"} onClose={() => setSheet(null)} title="Communiqué de Rome — proposition" accent={C.red}><RomeComposer emit={emit} /></Sheet>
+      <Sheet visible={sheet === "situation"} onClose={() => setSheet(null)} title="Dossier de situation" accent={C.steel} wide><Situation view={view} scenario={lobby?.scenario} /></Sheet>
       <Sheet visible={sheet === "report"} onClose={() => setSheet(null)} title="Rapport du round"><ReportBody report={game.report} view={view} /></Sheet>
       <Sheet visible={sheet === "actors"} onClose={() => setSheet(null)} title="Situation de tous les acteurs" wide>
         {view.actors_detail.map((a: any) => (
