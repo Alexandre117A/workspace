@@ -1,213 +1,273 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Animated, Easing, StyleSheet, View } from "react-native";
+import { Animated, Easing, Image, StyleSheet, View } from "react-native";
 import Svg, { Circle, Defs, Ellipse, G, Line, LinearGradient, Path, Pattern, Polygon, Rect, Stop, Text as SvgText } from "react-native-svg";
 import { useLayout, useReducedMotion } from "./ui";
+import { PHOTOS } from "../content/photos";
 import { C, F } from "../theme";
 
 /**
- * « Chronique » : planches illustrées d'événements géopolitiques (historiques et contemporains)
- * qui défilent du haut vers le bas en arrière-plan. Ce sont des illustrations ORIGINALES dessinées
- * en vectoriel (pas des photographies) ; les légendes sont des repères généraux.
+ * « Chronique » : UNE seule scène continue qui défile du haut vers le bas, sans case ni cadre.
+ * Courbes de niveau, méridiens, silhouettes d'équipements (illustrations vectorielles originales)
+ * et légendes flottantes se fondent dans un même plan ; la teinte glisse du sépia (histoire)
+ * à l'acier (monde contemporain). La scène est périodique : la boucle ne montre aucune couture.
+ * Les photographies déposées dans `content/photos.ts` s'insèrent dans la même scène en fondu.
  */
-type Motif = "summit" | "treaty" | "plane" | "ship" | "missile" | "wall" | "map" | "sat" | "tanker";
-interface PlateData { year: string; title: string; caption: string; motif: Motif; tone: "sepia" | "steel" }
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-export const PLATES: PlateData[] = [
-  { year: "1815", title: "Congrès de Vienne", caption: "Les puissances redessinent l'Europe après Napoléon", motif: "summit", tone: "sepia" },
-  { year: "1815", title: "Waterloo", caption: "18 juin : fin de l'épopée napoléonienne", motif: "map", tone: "sepia" },
-  { year: "1919", title: "Traité de Versailles", caption: "Un ordre d'après-guerre aux conséquences durables", motif: "treaty", tone: "sepia" },
-  { year: "1945", title: "Conférence de Yalta", caption: "Trois dirigeants, une Europe à partager", motif: "summit", tone: "sepia" },
-  { year: "1948", title: "Pont aérien de Berlin", caption: "Ravitailler une ville assiégée par les airs", motif: "plane", tone: "sepia" },
-  { year: "1956", title: "Crise de Suez", caption: "Le canal, enjeu de puissance entre anciennes et nouvelles puissances", motif: "ship", tone: "sepia" },
-  { year: "1962", title: "Crise des missiles de Cuba", caption: "Treize jours au bord de la guerre nucléaire", motif: "missile", tone: "sepia" },
-  { year: "1989", title: "Chute du mur de Berlin", caption: "9 novembre : la fin d'une frontière symbole", motif: "wall", tone: "sepia" },
-  { year: "Aujourd'hui", title: "Détroit d'Ormuz", caption: "Environ un cinquième du pétrole mondial y transite", motif: "tanker", tone: "steel" },
-  { year: "Aujourd'hui", title: "Mer de Chine méridionale", caption: "Routes maritimes et revendications concurrentes", motif: "map", tone: "steel" },
-  { year: "2021", title: "Canal de Suez bloqué", caption: "Un porte-conteneurs paralyse le trafic pendant six jours", motif: "ship", tone: "steel" },
-  { year: "Aujourd'hui", title: "Arctique", caption: "Nouvelles routes maritimes, nouvelles rivalités", motif: "map", tone: "steel" },
-  { year: "Depuis 1999", title: "Sommets du G20", caption: "Les grandes économies autour d'une même table", motif: "summit", tone: "steel" },
-  { year: "Aujourd'hui", title: "Compétition spatiale", caption: "L'orbite terrestre, nouvel espace stratégique", motif: "sat", tone: "steel" },
+type Kind = "carrier" | "destroyer" | "jet" | "tanker" | "sail" | "summit" | "airlift" | "missile" | "sat" | "skyline" | "tank";
+interface Item { y: number; x: number; s: number; kind: Kind; year: string; label: string; tone: "sepia" | "steel"; flip?: boolean }
+
+// y en fraction de la hauteur de la scène (0,05–0,95 : les bords restent vides pour une boucle invisible)
+const ITEMS: Item[] = [
+  { y: 0.06, x: 0.1, s: 0.9, kind: "summit", year: "1815", label: "CONGRÈS DE VIENNE", tone: "sepia" },
+  { y: 0.14, x: 0.5, s: 1.1, kind: "sail", year: "1805", label: "TRAFALGAR", tone: "sepia" },
+  { y: 0.23, x: 0.05, s: 1.0, kind: "summit", year: "1945", label: "CONFÉRENCE DE YALTA", tone: "sepia", flip: true },
+  { y: 0.31, x: 0.45, s: 1.15, kind: "airlift", year: "1948", label: "PONT AÉRIEN DE BERLIN", tone: "sepia" },
+  { y: 0.4, x: 0.08, s: 1.0, kind: "destroyer", year: "1956", label: "CRISE DE SUEZ", tone: "sepia" },
+  { y: 0.48, x: 0.5, s: 1.0, kind: "missile", year: "1962", label: "CRISE DES MISSILES DE CUBA", tone: "sepia" },
+  { y: 0.56, x: 0.06, s: 1.1, kind: "tank", year: "1989", label: "GUERRE FROIDE · LE RIDEAU SE LÈVE", tone: "steel" },
+  { y: 0.64, x: 0.5, s: 1.25, kind: "tanker", year: "AUJOURD'HUI", label: "DÉTROIT D'ORMUZ", tone: "steel" },
+  { y: 0.73, x: 0.05, s: 1.3, kind: "carrier", year: "AUJOURD'HUI", label: "MER DE CHINE MÉRIDIONALE", tone: "steel" },
+  { y: 0.82, x: 0.55, s: 1.0, kind: "jet", year: "AUJOURD'HUI", label: "SUPRÉMATIE AÉRIENNE", tone: "steel" },
+  { y: 0.89, x: 0.08, s: 0.9, kind: "sat", year: "AUJOURD'HUI", label: "COMPÉTITION SPATIALE", tone: "steel" },
+  { y: 0.95, x: 0.52, s: 1.0, kind: "skyline", year: "DEPUIS 1999", label: "SOMMETS DU G20", tone: "steel" },
 ];
 
-const W = 280;
-const H = 176;
-
-function Art({ motif, c }: { motif: Motif; c: string }) {
+function Silhouette({ kind, c }: { kind: Kind; c: string }) {
+  const f = { fill: c } as const;
   const s = { stroke: c, strokeWidth: 1.4, fill: "none" } as const;
-  const f = { fill: c, opacity: 0.85 } as const;
-  switch (motif) {
-    case "summit":
+  switch (kind) {
+    case "carrier":
       return (
         <G>
-          <Ellipse cx="140" cy="100" rx="82" ry="22" {...s} />
-          <Ellipse cx="140" cy="100" rx="60" ry="14" {...s} opacity={0.5} />
-          {Array.from({ length: 8 }).map((_, i) => {
-            const a = (i / 8) * Math.PI * 2;
-            return <Circle key={i} cx={140 + Math.cos(a) * 96} cy={100 + Math.sin(a) * 30} r="6" {...f} />;
-          })}
-          {[70, 140, 210].map((x) => <G key={x}><Line x1={x} y1="30" x2={x} y2="62" {...s} /><Path d={`M${x} 30 L${x + 22} 36 L${x} 44 Z`} {...f} /></G>)}
+          <Path d="M0 120 L40 100 L380 100 L400 120 L370 138 L30 138 Z" {...f} opacity={0.9} />
+          <Rect x="40" y="94" width="330" height="6" {...f} opacity={0.6} />
+          <Path d="M250 94 L250 66 L276 62 L290 70 L290 94 Z" {...f} />
+          <Line x1="270" y1="62" x2="270" y2="40" {...s} /><Path d="M262 46 L278 46" {...s} />
+          {[70, 100, 128, 160, 190].map((x, i) => <Polygon key={x} points={`${x},94 ${x + 14},91 ${x + 20},94 ${x + 14},97`} {...f} opacity={0.85 - i * 0.1} />)}
+          <Path d="M0 148 Q50 140 100 148 T200 148 T300 148 T400 148" {...s} opacity={0.5} /><Path d="M0 158 Q50 150 100 158 T200 158 T300 158 T400 158" {...s} opacity={0.3} />
         </G>
       );
-    case "treaty":
+    case "destroyer":
       return (
         <G>
-          <Rect x="86" y="22" width="108" height="100" {...s} />
-          {[40, 52, 64, 76, 88].map((y) => <Line key={y} x1="100" y1={y} x2="180" y2={y} {...s} opacity={0.6} />)}
-          <Circle cx="168" cy="106" r="9" {...f} />
-          <Path d="M210 30 L150 96" {...s} strokeWidth={2} />
+          <Path d="M10 112 L330 112 L300 134 L38 134 Z" {...f} />
+          <Path d="M110 112 L120 90 L220 90 L236 112 Z" {...f} opacity={0.85} /><Rect x="150" y="70" width="40" height="20" {...f} opacity={0.8} />
+          <Line x1="170" y1="70" x2="170" y2="36" {...s} /><Line x1="156" y1="50" x2="184" y2="50" {...s} /><Circle cx="170" cy="36" r="4" {...f} />
+          <Path d="M270 112 L290 100 L322 100 L322 106 L292 106" {...s} />
+          {[0, 1, 2, 3, 4].map((i) => <Rect key={i} x={56 + i * 9} y="106" width="6" height="6" {...f} opacity={0.6} />)}
+          <Path d="M0 144 Q60 134 120 144 T240 144 T360 144" {...s} opacity={0.45} />
         </G>
       );
-    case "plane":
+    case "jet":
       return (
         <G>
-          <Polygon points="60,84 168,76 208,60 214,66 190,82 214,98 208,104 168,92 60,100" {...f} />
-          <Polygon points="120,80 150,36 162,38 148,80" {...f} opacity={0.6} />
-          <Polygon points="120,96 150,140 162,138 148,96" {...f} opacity={0.6} />
-          {[0, 1, 2].map((i) => <Line key={i} x1={30 - i * 4} y1={80 + i * 8} x2={70} y2={80 + i * 8} {...s} opacity={0.4} />)}
+          <Polygon points="30,110 250,96 330,60 340,66 316,102 340,138 330,144 250,124" {...f} opacity={0.92} />
+          <Polygon points="190,108 240,40 258,44 236,106" {...f} opacity={0.65} /><Polygon points="190,112 240,180 258,176 236,114" {...f} opacity={0.65} />
+          <Polygon points="40,108 20,100 18,110 34,114" {...f} opacity={0.5} />
+          {[0, 1, 2].map((i) => <Path key={i} d={`M${-20 - i * 10} ${106 + i * 6} Q60 ${112 + i * 6} 30 ${110}`} {...s} opacity={0.45 - i * 0.1} />)}
         </G>
       );
-    case "ship":
+    case "airlift":
       return (
         <G>
-          <Path d="M40 100 L240 100 L214 124 L66 124 Z" {...f} />
-          <Rect x="150" y="76" width="40" height="24" {...f} opacity={0.7} />
-          <Rect x="166" y="60" width="12" height="16" {...f} opacity={0.7} />
-          {[0, 1, 2, 3].map((i) => <Rect key={i} x={62 + i * 22} y="86" width="18" height="14" {...f} opacity={0.5} />)}
-          {[0, 1, 2].map((i) => <Path key={i} d={`M20 ${132 + i * 10} Q60 ${124 + i * 10} 100 ${132 + i * 10} T180 ${132 + i * 10} T260 ${132 + i * 10}`} {...s} opacity={0.4} />)}
+          <Path d="M20 110 Q60 96 150 96 L330 98 L350 90 L362 92 L346 108 L330 112 L150 116 Q60 122 20 110 Z" {...f} />
+          <Path d="M170 98 L210 52 L230 54 L212 98 Z" {...f} opacity={0.7} /><Path d="M170 114 L210 164 L230 162 L212 114 Z" {...f} opacity={0.7} />
+          {[196, 230, 262].map((x) => <Ellipse key={x} cx={x} cy="116" rx="9" ry="5" {...f} opacity={0.6} />)}
+          <Path d="M-10 140 Q80 130 160 138" {...s} opacity={0.35} strokeDasharray="4 6" />
         </G>
       );
     case "tanker":
       return (
         <G>
-          <Path d="M24 104 L256 104 L236 126 L44 126 Z" {...f} />
-          <Rect x="204" y="72" width="30" height="32" {...f} opacity={0.7} />
-          {[0, 1, 2, 3, 4].map((i) => <Ellipse key={i} cx={64 + i * 30} cy="100" rx="12" ry="5" {...f} opacity={0.5} />)}
-          <Path d="M0 142 Q70 130 140 142 T280 142" {...s} opacity={0.4} />
-          <Line x1="0" y1="52" x2="280" y2="52" stroke={c} strokeWidth="0.6" strokeDasharray="3 5" opacity={0.5} />
+          <Path d="M0 114 L400 114 L370 138 L26 138 Z" {...f} />
+          <Rect x="330" y="76" width="44" height="38" {...f} opacity={0.8} /><Rect x="350" y="58" width="12" height="18" {...f} opacity={0.8} />
+          {Array.from({ length: 8 }).map((_, i) => <Ellipse key={i} cx={40 + i * 36} cy="110" rx="15" ry="6" {...f} opacity={0.55} />)}
+          <Path d="M30 108 L320 108" {...s} opacity={0.6} />
+          <Path d="M0 150 Q70 138 140 150 T280 150 T400 150" {...s} opacity={0.4} />
+        </G>
+      );
+    case "sail":
+      return (
+        <G>
+          <Path d="M20 120 Q200 138 360 118 L340 140 Q200 156 40 142 Z" {...f} />
+          {[110, 200, 290].map((x, i) => (
+            <G key={x}>
+              <Line x1={x} y1="124" x2={x} y2={30 + i * 10} {...s} />
+              <Path d={`M${x + 2} ${36 + i * 10} Q${x + 44} ${70 + i * 10} ${x + 2} ${106}`} {...f} opacity={0.55} />
+              <Path d={`M${x - 2} ${44 + i * 10} Q${x - 40} ${74 + i * 10} ${x - 2} ${108}`} {...f} opacity={0.4} />
+            </G>
+          ))}
+          <Path d="M290 30 L316 36 L290 44 Z" {...f} />
+          <Path d="M0 156 Q50 148 100 156 T200 156 T300 156 T400 156" {...s} opacity={0.4} />
+        </G>
+      );
+    case "summit":
+      return (
+        <G>
+          <Ellipse cx="200" cy="120" rx="120" ry="30" {...s} /><Ellipse cx="200" cy="120" rx="92" ry="20" {...s} opacity={0.45} />
+          {Array.from({ length: 10 }).map((_, i) => { const a = (i / 10) * Math.PI * 2; return <Circle key={i} cx={200 + Math.cos(a) * 138} cy={120 + Math.sin(a) * 40} r="8" {...f} opacity={0.85} />; })}
+          {[90, 200, 310].map((x) => <G key={x}><Line x1={x} y1="30" x2={x} y2="76" {...s} /><Path d={`M${x} 30 L${x + 30} 38 L${x} 50 Z`} {...f} opacity={0.8} /></G>)}
         </G>
       );
     case "missile":
       return (
         <G>
-          {[16, 30, 44].map((r) => <Circle key={r} cx="196" cy="102" r={r} {...s} opacity={0.5} />)}
-          <Polygon points="40,118 150,60 160,70 54,128" {...f} />
-          <Polygon points="150,60 176,42 160,70" {...f} />
-          <Polygon points="40,118 24,106 36,100 52,112" {...f} opacity={0.6} />
-        </G>
-      );
-    case "wall":
-      return (
-        <G>
-          <Rect x="20" y="64" width="240" height="62" {...s} />
-          {[0, 1, 2, 3].map((r) => Array.from({ length: 8 }).map((_, i) => <Rect key={`${r}${i}`} x={20 + i * 30 + (r % 2) * 15} y={64 + r * 15.5} width="30" height="15.5" {...s} opacity={0.45} />))}
-          <Path d="M20 50 L260 50" {...s} /><Path d="M20 50 l8 -8 l8 8 l8 -8 l8 8 l8 -8 l8 8 l8 -8 l8 8 l8 -8 l8 8" {...s} opacity={0.6} />
+          {[22, 44, 66, 88].map((r) => <Circle key={r} cx="290" cy="110" r={r} {...s} opacity={0.35} />)}
+          <Polygon points="30,150 220,70 232,82 46,164" {...f} />
+          <Polygon points="220,70 262,44 232,82" {...f} /><Polygon points="30,150 8,134 24,126 46,142" {...f} opacity={0.65} />
+          <Line x1="290" y1="20" x2="290" y2="200" {...s} opacity={0.3} /><Line x1="190" y1="110" x2="390" y2="110" {...s} opacity={0.3} />
         </G>
       );
     case "sat":
       return (
         <G>
-          <Path d="M10 150 Q140 60 270 150" {...s} />
-          <Path d="M10 150 Q140 40 270 150" {...s} opacity={0.4} strokeDasharray="3 5" />
-          <G transform="translate(168,62) rotate(-24)">
-            <Rect x="-10" y="-8" width="20" height="16" {...f} />
-            <Rect x="-40" y="-5" width="26" height="10" {...f} opacity={0.6} />
-            <Rect x="14" y="-5" width="26" height="10" {...f} opacity={0.6} />
-          </G>
-          {[0, 1, 2, 3, 4].map((i) => <Circle key={i} cx={60 + i * 40} cy={46 + (i % 2) * 14} r="1.5" {...f} />)}
+          <Path d="M0 200 Q200 40 400 200" {...s} /><Path d="M0 200 Q200 14 400 200" {...s} opacity={0.35} strokeDasharray="4 6" />
+          <G transform="translate(240,70) rotate(-20)"><Rect x="-14" y="-10" width="28" height="20" {...f} /><Rect x="-64" y="-6" width="44" height="12" {...f} opacity={0.65} /><Rect x="20" y="-6" width="44" height="12" {...f} opacity={0.65} /><Circle cx="0" cy="-18" r="5" {...s} /></G>
+          {Array.from({ length: 14 }).map((_, i) => <Circle key={i} cx={20 + i * 28} cy={30 + ((i * 37) % 60)} r="1.4" {...f} opacity={0.7} />)}
+        </G>
+      );
+    case "skyline":
+      return (
+        <G>
+          <Rect x="0" y="140" width="400" height="6" {...f} opacity={0.7} />
+          {[[10, 70, 30], [44, 40, 26], [74, 86, 34], [112, 56, 28], [144, 100, 40], [188, 62, 26], [220, 82, 32], [256, 46, 24], [284, 94, 38], [326, 64, 28], [358, 78, 30]].map(([x, h, w], i) => <Rect key={i} x={x} y={140 - h} width={w} height={h} {...f} opacity={0.6 + (i % 3) * 0.1} />)}
+          <Path d="M144 40 Q164 6 184 40 Z" {...f} opacity={0.85} /><Line x1="164" y1="6" x2="164" y2="-12" {...s} />
         </G>
       );
     default:
       return (
         <G>
-          <Path d="M30 110 Q40 60 90 56 Q120 40 150 60 Q200 54 230 90 Q246 120 200 128 Q150 140 110 128 Q50 134 30 110 Z" {...s} />
-          <Path d="M90 56 Q96 90 120 128 M150 60 Q150 96 170 130" {...s} strokeDasharray="4 4" opacity={0.6} />
-          <Polygon points="192,76 200,92 184,92" {...f} />
-          <Circle cx="108" cy="96" r="3" {...f} />
+          <Path d="M20 130 L360 130 L350 148 L30 148 Z" {...f} />
+          {Array.from({ length: 8 }).map((_, i) => <Circle key={i} cx={46 + i * 40} cy="146" r="9" {...f} opacity={0.7} />)}
+          <Path d="M90 130 L110 100 L270 100 L300 130 Z" {...f} opacity={0.9} />
+          <Rect x="130" y="82" width="110" height="20" {...f} opacity={0.85} /><Rect x="240" y="88" width="120" height="7" {...f} />
         </G>
       );
   }
 }
 
-function Plate({ p, w }: { p: PlateData; w: number }) {
-  const h = (w * H) / W;
-  const sepia = p.tone === "sepia";
-  const ink = sepia ? "#D9BE8A" : "#9DB7D4";
-  const bg1 = sepia ? "#2A2012" : "#0F1B2A";
-  const bg2 = sepia ? "#14100A" : "#08111B";
+const SEPIA = "#D9BE8A";
+const STEEL = "#9DB7D4";
+
+function Scene({ w, h, phase }: { w: number; h: number; phase: Animated.Value }) {
+  const lines = 30;
+  const drift = phase.interpolate({ inputRange: [0, 1], outputRange: [0, -120] });
+  const curves = useMemo(
+    () => [
+      { d: `M ${w * 0.05} ${h * 0.12} C ${w * 0.3} ${h * 0.02}, ${w * 0.5} ${h * 0.2}, ${w * 0.95} ${h * 0.09}`, c: SEPIA, len: w * 1.1 },
+      { d: `M ${w * 0.1} ${h * 0.36} C ${w * 0.4} ${h * 0.3}, ${w * 0.6} ${h * 0.44}, ${w * 0.92} ${h * 0.34}`, c: SEPIA, len: w * 1.1 },
+      { d: `M ${w * 0.04} ${h * 0.6} C ${w * 0.3} ${h * 0.54}, ${w * 0.55} ${h * 0.7}, ${w * 0.96} ${h * 0.58}`, c: STEEL, len: w * 1.1 },
+      { d: `M ${w * 0.08} ${h * 0.78} C ${w * 0.35} ${h * 0.7}, ${w * 0.6} ${h * 0.86}, ${w * 0.94} ${h * 0.76}`, c: STEEL, len: w * 1.1 },
+      { d: `M ${w * 0.02} ${h * 0.92} C ${w * 0.3} ${h * 0.86}, ${w * 0.6} ${h * 0.98}, ${w} ${h * 0.9}`, c: STEEL, len: w * 1.1 },
+    ],
+    [w, h],
+  );
   return (
-    <View style={{ width: w, height: h, marginBottom: 22 }}>
-      <Svg width={w} height={h} viewBox={`0 0 ${W} ${H}`}>
-        <Defs>
-          <LinearGradient id={`g${p.title}${p.year}`} x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor={bg1} /><Stop offset="1" stopColor={bg2} /></LinearGradient>
-          <Pattern id={`n${p.title}${p.year}`} width="4" height="4" patternUnits="userSpaceOnUse"><Rect width="1" height="1" fill={ink} opacity={0.12} /></Pattern>
-        </Defs>
-        <Rect width={W} height={H} fill={`url(#g${p.title}${p.year})`} />
-        <Rect width={W} height={H} fill={`url(#n${p.title}${p.year})`} />
-        <Art motif={p.motif} c={ink} />
-        <Rect x="0.5" y="0.5" width={W - 1} height={H - 1} stroke={ink} strokeOpacity={0.5} fill="none" />
-        <Rect x="0" y={H - 46} width={W} height="46" fill="#000" opacity={0.55} />
-        <SvgText x="12" y={H - 28} fill={ink} fontSize="10" fontFamily={F.monoBold} letterSpacing="2">{p.year.toUpperCase()}</SvgText>
-        <SvgText x="12" y={H - 12} fill="#EDE6D4" fontSize="14" fontFamily={F.title}>{p.title}</SvgText>
-        <SvgText x="12" y={H - 1} fill={ink} fontSize="0" fontFamily={F.sans}>{p.caption}</SvgText>
-      </Svg>
-    </View>
+    <Svg width={w} height={h}>
+      <Defs>
+        <LinearGradient id="bg" x1="0" y1="0" x2="0" y2={h} gradientUnits="userSpaceOnUse">
+          <Stop offset="0" stopColor="#10141B" /><Stop offset="0.25" stopColor="#241B10" /><Stop offset="0.5" stopColor="#10141B" />
+          <Stop offset="0.75" stopColor="#0C1928" /><Stop offset="1" stopColor="#10141B" />
+        </LinearGradient>
+        <LinearGradient id="ink" x1="0" y1="0" x2="0" y2={h} gradientUnits="userSpaceOnUse">
+          <Stop offset="0" stopColor="#6B6A66" /><Stop offset="0.25" stopColor={SEPIA} /><Stop offset="0.5" stopColor="#6B6A66" />
+          <Stop offset="0.75" stopColor={STEEL} /><Stop offset="1" stopColor="#6B6A66" />
+        </LinearGradient>
+        <Pattern id="grain" width="5" height="5" patternUnits="userSpaceOnUse"><Rect width="1" height="1" fill="#fff" opacity={0.07} /><Rect x="3" y="2" width="1" height="1" fill="#fff" opacity={0.05} /></Pattern>
+      </Defs>
+      <Rect width={w} height={h} fill="url(#bg)" />
+      {/* courbes de niveau : périodiques en y, donc sans couture à la boucle */}
+      {Array.from({ length: lines }).map((_, k) => {
+        const base = (k / lines) * h;
+        const amp = 26 + (k % 5) * 6;
+        const ph = k * 0.7;
+        let d = `M 0 ${base}`;
+        for (let x = 0; x <= w; x += 40) d += ` L ${x} ${base + Math.sin((x / w) * Math.PI * 3 + ph) * amp}`;
+        return <Path key={k} d={d} stroke="url(#ink)" strokeWidth={k % 5 === 0 ? 1.2 : 0.6} fill="none" opacity={k % 5 === 0 ? 0.32 : 0.16} />;
+      })}
+      {/* méridiens */}
+      {Array.from({ length: 9 }).map((_, i) => {
+        const x = (i / 8) * w;
+        return <Path key={i} d={`M ${x} 0 Q ${x + (i - 4) * 18} ${h / 2} ${x} ${h}`} stroke="url(#ink)" strokeWidth={0.5} fill="none" opacity={0.14} />;
+      })}
+      {ITEMS.map((it, i) => {
+        const size = Math.min(w * 0.46, 520) * it.s;
+        const x = it.x * w;
+        const y = it.y * h;
+        const ink = it.tone === "sepia" ? SEPIA : STEEL;
+        return (
+          <G key={i} transform={`translate(${x},${y})`}>
+            <G transform={`scale(${size / 400})`} opacity={0.5}>
+              <G transform={it.flip ? "translate(400,0) scale(-1,1)" : undefined}><Silhouette kind={it.kind} c={ink} /></G>
+            </G>
+            <Line x1="0" y1={size * 0.52} x2={size * 0.34} y2={size * 0.52} stroke={ink} strokeWidth={0.8} opacity={0.7} />
+            <SvgText x="0" y={size * 0.52 + 16} fill={ink} fontSize="10" fontFamily={F.monoBold} letterSpacing="3" opacity={0.85}>{it.year}</SvgText>
+            <SvgText x="0" y={size * 0.52 + 34} fill="#EDE6D4" fontSize="15" fontFamily={F.title} opacity={0.8}>{it.label}</SvgText>
+          </G>
+        );
+      })}
+      {/* courbes qui se dessinent : routes, trajectoires, tensions */}
+      {curves.map((c, i) => (
+        <AnimatedPath key={i} d={c.d} stroke={c.c} strokeWidth={1.6} fill="none" strokeLinecap="round" opacity={0.55}
+          strokeDasharray={`${c.len * 0.35} ${c.len * 0.65}`} strokeDashoffset={phase.interpolate({ inputRange: [0, 1], outputRange: [i % 2 ? c.len : 0, i % 2 ? 0 : c.len] }) as any} />
+      ))}
+      <Rect width={w} height={h} fill="url(#grain)" />
+    </Svg>
   );
 }
 
-function Column({ plates, w, speed, delay }: { plates: PlateData[]; w: number; speed: number; delay: number }) {
+/** Fond défilant. `strength` règle la visibilité (0.1 discret → 0.6 mis en avant). */
+export function Chronicle({ strength = 0.4 }: { strength?: number }) {
+  const { width, height } = useLayout();
   const reduced = useReducedMotion();
-  const y = useRef(new Animated.Value(0)).current;
-  const unit = (w * H) / W + 22;
-  const total = unit * plates.length;
+  const scroll = useRef(new Animated.Value(0)).current;
+  const phase = useRef(new Animated.Value(0)).current;
+  const w = Math.max(320, Math.round(width));
+  const h = Math.max(1900, Math.round(height * 2.4));
   useEffect(() => {
     if (reduced) return;
-    y.setValue(-total);
-    const loop = Animated.loop(Animated.timing(y, { toValue: 0, duration: (total / speed) * 1000, easing: Easing.linear, useNativeDriver: true }));
-    const t = setTimeout(() => loop.start(), delay);
-    return () => { clearTimeout(t); loop.stop(); };
-  }, [reduced, total, speed, delay]);
-  const list = [...plates, ...plates];
+    scroll.setValue(0);
+    const a = Animated.loop(Animated.timing(scroll, { toValue: 1, duration: (h / 20) * 1000, easing: Easing.linear, useNativeDriver: true }));
+    const b = Animated.loop(Animated.sequence([
+      Animated.timing(phase, { toValue: 1, duration: 9000, easing: Easing.inOut(Easing.quad), useNativeDriver: false }),
+      Animated.timing(phase, { toValue: 0, duration: 0, useNativeDriver: false }),
+    ]));
+    a.start();
+    b.start();
+    return () => { a.stop(); b.stop(); };
+  }, [reduced, h]);
+  const y = scroll.interpolate({ inputRange: [0, 1], outputRange: [-h, 0] });
   return (
-    <View style={{ width: w, overflow: "hidden", height: "100%" as any }}>
-      <Animated.View style={{ transform: [{ translateY: reduced ? -total * 0.3 : y }], position: "absolute", top: 0 }}>
-        {list.map((p, i) => <Plate key={i} p={p} w={w} />)}
+    <View style={[StyleSheet.absoluteFill, { opacity: strength, overflow: "hidden" }]} pointerEvents="none">
+      <Animated.View style={{ position: "absolute", left: 0, top: 0, width: w, transform: [{ translateY: reduced ? -h * 0.4 : y }] }}>
+        <Scene w={w} h={h} phase={phase} />
+        <View style={{ marginTop: -1 }}><Scene w={w} h={h} phase={phase} /></View>
+        {PHOTOS.map((p, i) => (
+          <Image key={i} source={p.src} resizeMode="cover" style={{ position: "absolute", left: 0, width: w, top: ((i + 0.5) / PHOTOS.length) * h * 2 - 160, height: 320, opacity: 0.6 }} />
+        ))}
       </Animated.View>
     </View>
   );
 }
 
-/** Fond défilant. `strength` règle la visibilité des planches (0.1 discret → 0.5 mis en avant). */
-export function Chronicle({ strength = 0.28 }: { strength?: number }) {
-  const { width } = useLayout();
-  const cols = width < 700 ? 1 : width < 1100 ? 2 : 3;
-  const colW = Math.min(300, Math.floor((width - 24 * (cols + 1)) / cols));
-  const columns = useMemo(() => {
-    const n = PLATES.length;
-    return Array.from({ length: cols }).map((_, i) => {
-      const rot = Math.floor((n / cols) * i);
-      return [...PLATES.slice(rot), ...PLATES.slice(0, rot)].slice(0, 8);
-    });
-  }, [cols]);
-  if (colW < 120) return null;
-  return (
-    <View style={[StyleSheet.absoluteFill, { flexDirection: "row", justifyContent: "space-evenly", opacity: strength }]} pointerEvents="none">
-      {columns.map((pl, i) => <Column key={i} plates={pl} w={colW} speed={9 + i * 4} delay={i * 400} />)}
-    </View>
-  );
-}
-
-/** Voile sombre dégradé par-dessus le fond défilant pour garder les textes lisibles. */
+/** Voile dégradé et vignette : garde les textes lisibles et fond les bords dans le décor. */
 export function ChronicleVeil() {
   return (
     <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
       <Defs>
         <LinearGradient id="veil" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={C.bg} stopOpacity="0.85" />
-          <Stop offset="0.35" stopColor={C.bg} stopOpacity="0.35" />
-          <Stop offset="1" stopColor={C.bg} stopOpacity="0.9" />
+          <Stop offset="0" stopColor={C.bg} stopOpacity="0.8" />
+          <Stop offset="0.4" stopColor={C.bg} stopOpacity="0.3" />
+          <Stop offset="1" stopColor={C.bg} stopOpacity="0.88" />
+        </LinearGradient>
+        <LinearGradient id="side" x1="0" y1="0" x2="1" y2="0">
+          <Stop offset="0" stopColor={C.bg} stopOpacity="0.55" /><Stop offset="0.25" stopColor={C.bg} stopOpacity="0" />
+          <Stop offset="0.75" stopColor={C.bg} stopOpacity="0" /><Stop offset="1" stopColor={C.bg} stopOpacity="0.55" />
         </LinearGradient>
       </Defs>
       <Rect width="100%" height="100%" fill="url(#veil)" />
+      <Rect width="100%" height="100%" fill="url(#side)" />
     </Svg>
   );
 }

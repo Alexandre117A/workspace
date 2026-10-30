@@ -5,6 +5,7 @@ import Svg, { Circle, Line, Path } from "react-native-svg";
 import { formatJoinCode, isValidJoinCode } from "@geonex/shared";
 import { Wordmark } from "../components/Brand";
 import { Intro } from "../components/Intro";
+import { Features } from "../components/Features";
 import { Body, Btn, Field, Label, Notice, Screen, useLayout } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
@@ -138,6 +139,8 @@ export default function Home() {
         </View>
         <Btn label="Rejoindre" onPress={join} busy={joining} />
       </View>
+
+      <View style={{ marginTop: S(10) }}><Features /></View>
 
       <View style={{ marginTop: S(8), flexDirection: "row", flexWrap: "wrap", gap: S(4), justifyContent: "space-between" }}>
         <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>

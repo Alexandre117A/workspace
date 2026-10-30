@@ -3,6 +3,7 @@ import Svg, { Path, Rect } from "react-native-svg";
 import { BALANCE_UNLOCK_ROUND } from "@geonex/shared";
 import { Bar, Body, Label, Panel, statusLabel, useLayout } from "../ui";
 import { GeoMap } from "../GeoMap";
+import { Curve } from "../Curve";
 import { C, F, S } from "../../theme";
 
 const CAPS = [
@@ -26,6 +27,7 @@ export function CapitalPanel({ view, report }: { view: any; report: any }) {
               {ch ? <Text style={{ fontFamily: F.monoBold, color: ch.delta >= 0 ? C.green : C.red, marginBottom: 10 }}>{ch.delta >= 0 ? "▲ +" : "▼ "}{ch.delta} depuis le round précédent</Text> : null}
             </View>
             <Bar value={me.capitals[c.k]} color={c.color} />
+            <Curve width={300} height={64} series={[{ values: [me.initial_capitals[c.k], ...(me.history ?? []).map((h: any) => h.capitals[c.k])], color: c.color }]} />
             <Body muted style={{ fontSize: 12.5 }}>{c.desc} Départ : {Math.round(me.initial_capitals[c.k])}.</Body>
             {ch?.reasons?.slice(0, 5).map((r: any, i: number) => <Body key={i} style={{ fontSize: 13 }}>{r.delta >= 0 ? "+" : ""}{r.delta} · {r.reason}</Body>)}
           </Panel>

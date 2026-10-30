@@ -7,6 +7,7 @@ import { GeoMap } from "../GeoMap";
 import { Ack, fmtClock, remaining, useNow } from "../../lib/game";
 import { C, F, S } from "../../theme";
 import { RoundMark, TopBar } from "./chrome";
+import { Curve } from "../Curve";
 import { ReportBody } from "./phases";
 import { Situation } from "./Situation";
 
@@ -151,12 +152,7 @@ export function PresidentPost({ game, emit, title }: { game: any; emit: (e: stri
       </View>
       {Object.entries(tb.shares as Record<string, number>).map(([k, v], i) => <Body key={k} style={{ fontSize: 13.5 }}><Text style={{ color: colors[i % 4] }}>■ </Text>{tb.labels?.[k] ?? k} : {v} %</Body>)}
       {tb.leader_share >= 68 ? <Label color={C.red}>Zone de domination ({tb.leader_share} %) : le moteur peut préparer un Communiqué de Rome</Label> : null}
-      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 3, height: 50 }}>
-        {tb.history.map((h: any) => {
-          const lead = Math.max(...(Object.values(h.shares) as number[]));
-          return <View key={h.round} style={{ flex: 1, height: `${lead * 100}%`, backgroundColor: lead >= 0.68 ? C.red : C.lineHi }} />;
-        })}
-      </View>
+      <Curve width={Math.max(160, colW - 60)} height={90} min={20} max={80} series={Object.keys(tb.shares).map((k: string, i: number) => ({ color: colors[i % 4], values: tb.history.map((h: any) => (h.shares[k] ?? 0) * 100) }))} />
       <Label color={C.faint}>Part du camp dominant, round par round</Label>
     </Panel>
   );
