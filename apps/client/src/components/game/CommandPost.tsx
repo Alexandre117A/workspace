@@ -20,7 +20,7 @@ export function CommandPost({ game, emit, title, voice, openDossier }: { game: a
   const { view, runtime, offset } = game;
   if (!view?.me || !runtime) return null;
   const me = view.me;
-  const p: PhaseProps = { view, runtime, offset, messages: game.messages, invites: game.invites, report: game.report, emit, voice, openDossier, openCards: () => setSheet("cards") };
+  const p: PhaseProps = { view, runtime, offset, messages: game.messages, invites: game.invites, report: game.report, emit, voice, sessionId: game.lobby?.session?.id ?? "", openDossier, openCards: () => setSheet("cards") };
   const fictional = view.setting.theatre.map_kind === "fictional";
   const zones = view.zones.map((z: any) => ({ ...z.region, label: z.name, kind: "zone" as const }));
   const events = (view.events ?? []).filter((e: any) => e.location && e.round >= runtime.round - 1).map((e: any) => ({ ...e.location, kind: "event" as const, color: C.amber }));

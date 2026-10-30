@@ -9,6 +9,8 @@
     "apps/client"
   ],
   "scripts": {
+    "start": "node scripts/launch.mjs",
+    "build:web": "npm run export:web -w @geonex/client",
     "setup:engine": "node scripts/engine.mjs setup",
     "build:shared": "npm run build -w @geonex/shared",
     "build:api": "npm run build:shared && npm run build -w @geonex/api",

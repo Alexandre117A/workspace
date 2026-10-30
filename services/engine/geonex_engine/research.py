@@ -9,6 +9,7 @@ scénario indique alors explicitement que le contexte n'a pas été vérifié.
 from __future__ import annotations
 
 import os
+import time
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -29,8 +30,38 @@ def user_agent() -> str:
 USER_AGENT = user_agent()
 
 
+CACHE_TTL = 3600.0
+_cache: dict[tuple, tuple[float, object]] = {}
+_blocked_until: dict[str, float] = {}
+
+
+def _blocked(service: str) -> Optional[str]:
+    """Respecte la limitation de débit de Wikimedia : plus aucune requête tant que le délai n'est pas écoulé."""
+    remaining = _blocked_until.get(service, 0.0) - time.time()
+    if remaining > 0:
+        return f"Recherche {service} suspendue (limite de débit atteinte) : nouvel essai possible dans {int(remaining // 60) + 1} min"
+    return None
+
+
+def _remember_throttle(exc: Exception, service: str) -> None:
+    resp = getattr(exc, "response", None)
+    if getattr(resp, "status_code", None) == 429:
+        try:
+            wait = float(resp.headers.get("retry-after", "600"))
+        except ValueError:
+            wait = 600.0
+        _blocked_until[service] = time.time() + min(wait, 3600.0)
+
+
+def _cached(key: tuple):
+    hit = _cache.get(key)
+    return hit[1] if hit and time.time() - hit[0] < CACHE_TTL else None
+
+
 def _explain(exc: Exception, service: str) -> str:
     status = getattr(getattr(exc, "response", None), "status_code", None)
+    if status == 429:
+        return f"Recherche {service} limitée par le service (429) : réessayez plus tard"
     if status == 403:
         hint = "" if os.environ.get("GEONEX_RESEARCH_CONTACT") else " — définissez GEONEX_RESEARCH_CONTACT (URL ou adresse de contact exigée par la politique User-Agent de Wikimedia)"
         return f"Recherche {service} refusée (403){hint}"
@@ -56,6 +87,10 @@ class ResearchResult:
 
 def wikipedia_context(query: str, lang: str = "fr") -> tuple[Optional[str], Optional[SourceRef], Optional[str]]:
     """Retourne (extrait, source, erreur) pour l'article le plus pertinent."""
+    if (msg := _blocked("Wikipédia")):
+        return None, None, msg
+    if (hit := _cached(("wp", query, lang))):
+        return hit
     try:
         with httpx.Client(timeout=TIMEOUT, headers={"User-Agent": user_agent()}) as client:
             search = client.get(
@@ -73,8 +108,10 @@ def wikipedia_context(query: str, lang: str = "fr") -> tuple[Optional[str], Opti
             extract = data.get("extract")
             url = data.get("content_urls", {}).get("desktop", {}).get("page")
             src = SourceRef(status="confirmed", label=f"Wikipédia — {title}", url=url, retrieved_at=_now())
+            _cache[("wp", query, lang)] = (time.time(), (extract, src, None))
             return extract, src, None
     except Exception as exc:  # réseau indisponible, quota, format inattendu
+        _remember_throttle(exc, "Wikipédia")
         return None, None, _explain(exc, "Wikipédia")
 
 
@@ -92,9 +129,28 @@ SELECT ?iso ?roleLabel ?personLabel ?start WHERE {
 """
 
 
+def latest_leaders(rows: list[dict]) -> dict[str, list[tuple[str, str]]]:
+    """Plusieurs mandats « sans fin » peuvent coexister dans Wikidata : on garde le plus récent par fonction."""
+    latest: dict[tuple[str, str], tuple[str, str]] = {}
+    for row in rows:
+        iso, role = row["iso"]["value"], row["roleLabel"]["value"]
+        start = row.get("start", {}).get("value", "")
+        if (iso, role) not in latest or start > latest[(iso, role)][0]:
+            latest[(iso, role)] = (start, row["personLabel"]["value"])
+    leaders: dict[str, list[tuple[str, str]]] = {}
+    for (iso, role), (_, person) in latest.items():
+        leaders.setdefault(iso, []).append((role, person))
+    return leaders
+
+
 def wikidata_leaders(iso3_codes: list[str]) -> tuple[dict[str, list[tuple[str, str]]], Optional[SourceRef], Optional[str]]:
     if not iso3_codes:
         return {}, None, None
+    if (msg := _blocked("Wikidata")):
+        return {}, None, msg
+    key = ("wd", tuple(sorted(iso3_codes)))
+    if (hit := _cached(key)):
+        return hit
     values = " ".join(f'"{code}"' for code in iso3_codes)
     try:
         with httpx.Client(timeout=TIMEOUT + 4, headers={"User-Agent": user_agent(), "Accept": "application/sparql-results+json"}) as client:
@@ -102,13 +158,12 @@ def wikidata_leaders(iso3_codes: list[str]) -> tuple[dict[str, list[tuple[str, s
             resp.raise_for_status()
             rows = resp.json().get("results", {}).get("bindings", [])
     except Exception as exc:
+        _remember_throttle(exc, "Wikidata")
         return {}, None, _explain(exc, "Wikidata")
-    leaders: dict[str, list[tuple[str, str]]] = {}
-    for row in rows:
-        iso = row["iso"]["value"]
-        leaders.setdefault(iso, []).append((row["roleLabel"]["value"], row["personLabel"]["value"]))
     src = SourceRef(status="confirmed", label="Wikidata — chefs d'État et de gouvernement en fonction", url="https://query.wikidata.org/", retrieved_at=_now())
-    return leaders, src, None
+    result = (latest_leaders(rows), src, None)
+    _cache[key] = (time.time(), result)
+    return result
 
 
 def research_contemporary(topic: str, iso3_codes: list[str]) -> ResearchResult:

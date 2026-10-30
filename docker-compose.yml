@@ -1,0 +1,32 @@
+# Pile complète : PostgreSQL + moteur + API/web. NON TESTÉ sur cette machine (Docker absent).
+# Usage : copier .env.example en .env, définir GEONEX_JWT_SECRET et GEONEX_ENGINE_TOKEN, puis `docker compose up --build`.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: geonex
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: geonex
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+  engine:
+    build: ./services/engine
+    environment:
+      GEONEX_ENGINE_TOKEN: ${GEONEX_ENGINE_TOKEN:?définir GEONEX_ENGINE_TOKEN}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEONEX_RESEARCH_CONTACT: ${GEONEX_RESEARCH_CONTACT:-}
+      GEONEX_AI_BUDGET_USD: ${GEONEX_AI_BUDGET_USD:-25}
+  api:
+    build: .
+    depends_on: [db, engine]
+    ports: ["4000:4000"]
+    environment:
+      DATABASE_URL: postgres://geonex:${POSTGRES_PASSWORD:-change-me}@db:5432/geonex
+      GEONEX_ENGINE_URL: http://engine:8100
+      GEONEX_ENGINE_TOKEN: ${GEONEX_ENGINE_TOKEN:?définir GEONEX_ENGINE_TOKEN}
+      GEONEX_JWT_SECRET: ${GEONEX_JWT_SECRET:?définir GEONEX_JWT_SECRET}
+      GEONEX_OWNER_EMAILS: ${GEONEX_OWNER_EMAILS:-}
+      LIVEKIT_URL: ${LIVEKIT_URL:-}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-}
+volumes:
+  pgdata:

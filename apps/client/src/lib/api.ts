@@ -7,7 +7,10 @@ import { Platform } from "react-native";
  */
 function defaultUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL.replace(/\/$/, "");
-  if (Platform.OS === "web" && typeof location !== "undefined") return `${location.protocol}//${location.hostname}:4000`;
+  if (Platform.OS === "web" && typeof location !== "undefined") {
+    // Serveur de développement Expo (8081) : l'API est sur le port 4000. Sinon la page est servie par l'API elle-même.
+    return location.port === "8081" || location.port === "19006" ? `${location.protocol}//${location.hostname}:4000` : location.origin;
+  }
   return "http://localhost:4000";
 }
 

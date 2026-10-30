@@ -106,7 +106,12 @@ def decide(world: WorldState, actor: Actor) -> list[Decision]:
         cand(0.3, "domestic_policy", [], None, "consolidation intérieure")
 
     # Tirage pondéré (softmax) : diversité des comportements entre sessions.
-    candidates.sort(key=lambda c: -c[0])
+    best: dict[tuple, tuple] = {}
+    for c in candidates:  # une même action (catégorie, cibles, zone) n'est proposée qu'une fois
+        key = (c[1], tuple(c[2]), c[3])
+        if key not in best or c[0] > best[key][0]:
+            best[key] = c
+    candidates = sorted(best.values(), key=lambda c: -c[0])
     top = candidates[:5]
     weights = [math.exp(3.0 * c[0]) for c in top]
     picks: list[tuple] = []

@@ -1,31 +1,19 @@
 # GEONEX
 
-Simulations géopolitiques multijoueurs (iPhone, iPad, web, ordinateur). Projet autonome, indépendant du site Géopolis.
+Simulations géopolitiques multijoueurs (web, iPhone, iPad, ordinateur) : crises contemporaines, événements historiques ou univers fictifs, avec un moteur de simulation qui fait évoluer un monde cohérent selon les décisions des équipes.
+
+Projet autonome, indépendant du site Géopolis.
+
+## Utiliser GEONEX
+Double-cliquez sur **`Lancer GEONEX.bat`** (ou `npm start`). Le navigateur s'ouvre sur http://localhost:4000. Les autres participants ouvrent l'adresse « autres appareils » affichée dans la fenêtre (même Wi-Fi) et saisissent le code de la session.
+
+Aucune clé n'est obligatoire. L'IA, la voix et la recherche en ligne sont facultatives : voir `.env.example`.
+
+## Documentation
+- `docs/ETAT.md` — ce qui est terminé, partiel, testé ou externe
+- `docs/DEVELOPPEMENT.md` — structure, commandes, tests
+- `docs/DEPLOIEMENT.md` — hébergement, App Store, ordinateur
+- `docs/CONFIDENTIALITE.md` — projet de politique de confidentialité
 
 ## Architecture
-- `services/engine` — moteur de simulation (Python/FastAPI) : état du monde, probabilités auditables, scénarios, acteurs non joués, engagements, renseignement, cartes, Communiqués de Rome, classement, archives, vues filtrées.
-- `services/api` — backend (NestJS) : comptes, sessions, lobby, orchestration temps réel (Socket.IO), arbitrage, persistance PostgreSQL (`pg`) ou PGlite embarqué en local.
-- `apps/client` — client Expo/React Native (web + mobile).
-- `packages/shared` — types et schémas partagés.
-
-## Démarrage local (Windows)
-```
-npm install
-npm run setup:engine        # crée le venv Python (ou GEONEX_PYTHON=...)
-npm run dev:engine          # moteur  http://127.0.0.1:8100
-npm run dev:api             # API     http://localhost:4000/api
-npm run dev:client          # web     http://localhost:8081
-```
-Participants de test (mode démonstration, outil de développement) : `node scripts/demo-bots.mjs join <code> 2` ou `host "<prompt>" <équipes> [bots]`.
-
-## Tests
-`npm run test:engine` (51 tests pytest) · `npm run test:api` (parcours multijoueur complet avec le moteur réel).
-
-## Configuration externe (non incluse)
-- `ANTHROPIC_API_KEY` : active l'IA (scénarios libres, questions adaptatives, rédaction). Sans clé : règles du moteur, signalées comme telles.
-- `GEONEX_RESEARCH_CONTACT` : contact exigé par Wikimedia (sinon Wikipédia renvoie 403 ; Wikidata fonctionne).
-- `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` : voix (jetons serveur prêts ; client audio non intégré → canal texte).
-- `DATABASE_URL` (PostgreSQL), `GEONEX_JWT_SECRET`, `GEONEX_OWNER_EMAILS` pour la production.
-
-## État d'avancement
-Voir le rapport de fin de session. Points connus à reprendre : intégration client audio LiveKit, transcription vocale, doublon d'affichage « succès » dans le rapport de round, sélection Wikidata (rang préféré), dédoublonnage des décisions des acteurs non joués, configuration EAS/App Store, documentation de déploiement détaillée.
+`services/engine` (Python/FastAPI) · `services/api` (NestJS, Socket.IO, PostgreSQL ou PGlite) · `apps/client` (Expo/React Native) · `packages/shared` (types partagés).

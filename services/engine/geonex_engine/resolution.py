@@ -218,7 +218,7 @@ def _round_summary(world: WorldState, results: list[dict[str, Any]], record: dic
     else:
         sentences.append("Aucun affrontement armé ouvert n'est en cours.")
     if events:
-        sentences.append(f"Fait notable : {events[-1].title}.")
+        sentences.append(f"Fait notable : {events[-1].title.rstrip('.')}.")
     narrative = " ".join(sentences)
     title = highlights[0] if highlights else "Positions et manœuvres"
     generated_by = "rules"

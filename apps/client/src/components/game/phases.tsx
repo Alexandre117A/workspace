@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from "re
 import { DECISION_LABELS, DECISIONS_NEEDING_ARBITRATION, DECISIONS_NEEDING_TARGET, DecisionCategory, MAX_ALLOCATION_PER_DECISION, MAX_DECISIONS_PER_ROUND } from "@geonex/shared";
 import { Body, Btn, Chip, Divider, Field, Label, Notice, Panel, Stepper } from "../ui";
 import { Ack, fmtClock, remaining, useNow } from "../../lib/game";
+import { VoiceChannel } from "./Voice";
 import { C, F, S } from "../../theme";
 
 export interface PhaseProps {
@@ -14,6 +15,7 @@ export interface PhaseProps {
   report: any;
   emit: (event: string, payload?: unknown) => Promise<Ack>;
   voice: boolean;
+  sessionId: string;
   openDossier: () => void;
   openCards: () => void;
 }
@@ -118,7 +120,7 @@ export function AssemblyPhase({ p }: { p: PhaseProps }) {
           ))}
         </ScrollView>
       </View>
-      {!p.voice ? <Label color={C.faint}>Canal vocal non configuré : interventions écrites, diffusées à tous</Label> : null}
+      {p.voice ? <VoiceChannel sessionId={p.sessionId} channel="assembly" enabled speaking={speaking} roomKey={`${p.runtime.round}:${a.speaker}:${a.mode}`} /> : <Label color={C.faint}>Canal vocal non configuré : interventions écrites, diffusées à tous</Label>}
       {speaking ? (
         <View style={{ gap: S(2) }}>
           <Field value={text} onChangeText={setText} placeholder="Votre déclaration publique" multiline style={{ minHeight: 70 }} />
@@ -168,7 +170,8 @@ export function DiplomacyPhase({ p }: { p: PhaseProps }) {
             <Btn small label="Envoyer" disabled={!text.trim()} busy={busy === "msg"} onPress={async () => { if ((await run("msg", "diplomacy:message", { text })).ok) setText(""); }} />
             <Btn small variant="danger" label="Raccrocher" onPress={() => call && run("hang", "diplomacy:hangup", { callId: call.id })} />
           </View>
-          <Label color={C.faint}>Aucune autre délégation ne peut lire cet échange. {p.voice ? "" : "Canal vocal non configuré : échange écrit."}</Label>
+          {p.voice ? <VoiceChannel sessionId={p.sessionId} channel="call" enabled speaking roomKey={call.id} /> : null}
+          <Label color={C.faint}>Aucune autre délégation ne peut lire ou entendre cet échange. {p.voice ? "" : "Canal vocal non configuré : échange écrit."}</Label>
         </Panel>
       ) : null}
       {incoming.map((inv: any) => (
@@ -334,7 +337,7 @@ export function ReportBody({ report, view }: { report: any; view: any }) {
               );
             })}
           </Panel>
-          {pv.decisions?.length ? <Panel title="Vos décisions">{pv.decisions.map((d: any) => <Body key={d.decision_id} style={{ fontSize: 14 }}>{d.summary} <Text style={{ color: C.brass }}>{d.outcome_label}</Text></Body>)}</Panel> : null}
+          {pv.decisions?.length ? <Panel title="Vos décisions">{pv.decisions.map((d: any) => <Body key={d.decision_id} style={{ fontSize: 14 }}>{d.summary}</Body>)}</Panel> : null}
           {pv.rejected?.length ? <Notice tone="warn">Décision(s) écartée(s) : {pv.rejected.map((r: any) => r.errors.join(" ")).join(" ; ")}</Notice> : null}
           {pv.cards?.length ? <Panel title="Cartes stratégiques" accent={C.red}>{pv.cards.map((c: any, i: number) => <Body key={i} style={{ fontSize: 14 }}><Text style={{ fontFamily: F.sansBold }}>{c.label}</Text> — {c.result?.report ? `${c.result.report.finding} (fiabilité ${c.result.report.reliability_pct} % · ${c.result.report.confidence_label})` : c.result?.summary}</Body>)}</Panel> : null}
           {pv.events?.length ? <Panel title="Situation intérieure">{pv.events.map((e: any, i: number) => <Body key={i} style={{ fontSize: 14 }}><Text style={{ fontFamily: F.sansBold }}>{e.title}</Text> — {e.text}</Body>)}</Panel> : null}
