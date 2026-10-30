@@ -59,3 +59,18 @@ def test_round_narrative_has_no_double_punctuation(world):
     session.begin_round(world)
     report = resolution.resolve_round(world, [decision("d", "CHN", "sanctions", ["TWN"], economic=5)], [])
     assert ".." not in report["public"]["narrative"]
+
+
+def test_decision_preview_is_read_only_and_bounded(world):
+    from fastapi.testclient import TestClient
+
+    from geonex_engine.api import app
+
+    before = world.model_dump_json()
+    body = {"world": world.model_dump(mode="json"), "actor_id": "CHN",
+            "decisions": [{"id": "a", "category": "sanctions", "targets": ["TWN"], "allocation": {"economic": 10}},
+                          {"id": "b", "category": "military_strike", "targets": ["TWN"], "allocation": {"military": 20}}]}
+    r = TestClient(app).post("/decisions/preview", json=body).json()["previews"]
+    assert {p["id"] for p in r} == {"a", "b"}
+    assert all(0.04 <= p["probability"] <= 0.96 for p in r)
+    assert world.model_dump_json() == before

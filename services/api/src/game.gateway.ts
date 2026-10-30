@@ -156,6 +156,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   submit(@ConnectedSocket() s: Socket, @MessageBody() body: unknown) {
     return this.run(s, (id, who) => this.game.submitDecisions(id, who, body));
   }
+  @SubscribeMessage("decisions:preview")
+  preview(@ConnectedSocket() s: Socket, @MessageBody() body: unknown) {
+    return this.run(s, (id, who) => this.game.previewDecisions(id, who, body));
+  }
   @SubscribeMessage("request:interpret")
   interpret(@ConnectedSocket() s: Socket, @MessageBody() body: unknown) {
     return this.run(s, (id, who) => this.game.interpret(id, who, body));

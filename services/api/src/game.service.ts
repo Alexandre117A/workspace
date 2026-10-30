@@ -675,6 +675,14 @@ export class GameService implements OnModuleDestroy {
     });
   }
 
+  /** Estimation de chance avant validation : lecture seule, aucun effet sur la partie. */
+  async previewDecisions(sessionId: string, who: Actor, body: unknown) {
+    const decisions = parse(z.array(decisionSchema).max(MAX_DECISIONS_PER_ROUND), (body as any)?.decisions ?? body);
+    if (!who.actor) throw new ForbiddenException();
+    const world = await this.store.world(sessionId);
+    return this.engine.post("/decisions/preview", { world, actor_id: who.actor, decisions });
+  }
+
   async estimate(sessionId: string, who: Actor, body: unknown) {
     const { target } = parse(z.object({ target: z.string().max(12) }), body);
     if (!who.actor) throw new ForbiddenException();

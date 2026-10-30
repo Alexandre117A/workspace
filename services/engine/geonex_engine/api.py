@@ -13,7 +13,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from . import ai, archive, cards, jobs, questions, research, rome, session as session_mod, views
-from .actions import CATALOG, NEEDS_ARBITRATION, Decision, validate
+from .actions import CATALOG, NEEDS_ARBITRATION, Decision, assess_decision, validate
+from .probability import assess
 from .ai.tasks import analyse_request
 from .models import Scenario, WorldState
 from .planning import MIN_DURATION_MINUTES, RECOMMENDATION, build_plan
@@ -167,6 +168,24 @@ def validate_decisions(req: ValidateReq) -> dict[str, Any]:
         raise HTTPException(400, f"Décision mal formée ({exc.__class__.__name__}).")
     errors = validate(world, ds)
     return {"errors": errors, "needs_arbitration": [d.id for d in ds if d.category in NEEDS_ARBITRATION]}
+
+
+@app.post("/decisions/preview", dependencies=[Depends(_auth)])
+def preview_decisions(req: ValidateReq) -> dict[str, Any]:
+    """Estimation de chance et facteurs d'une décision AVANT validation (aucun tirage, aucun effet)."""
+    world = _world(req.world)
+    try:
+        ds = [Decision.from_dict({**d, "actor": req.actor_id}) for d in req.decisions]
+    except (KeyError, ValueError, TypeError):
+        raise HTTPException(400, "Décision mal formée.")
+    out = []
+    for d in ds:
+        if d.actor not in world.actors or d.category not in CATALOG or any(t not in world.actors or t == d.actor for t in d.targets):
+            continue
+        base, factors, _ = assess_decision(world, d, ds)
+        a = assess(base, factors, None)
+        out.append({"id": d.id, "probability": a.probability, "factors": a.contributions, "hostile": CATALOG[d.category]["hostile"], "cost": sum(d.allocation.values())})
+    return {"previews": out}
 
 
 class InterpretReq(BaseModel):

@@ -231,6 +231,14 @@ export function DecisionsPhase({ p }: { p: PhaseProps }) {
   const [drafts, setDrafts] = useState<Draft[]>([newDraft()]);
   const { busy, error, run } = useAction(p.emit);
   const submitted = p.runtime.submitted?.includes(me?.id);
+  const [previews, setPreviews] = useState<Record<string, any>>({});
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      const r = await p.emit("decisions:preview", { decisions: drafts.map((d) => ({ id: d.id, category: d.category, targets: d.targets, zone: d.zone, intent: "", allocation: d.allocation, secret: false, resources: Object.entries(d.resources).filter(([, q]) => q > 0).map(([key, quantity]) => ({ key, quantity })) })) });
+      if (r.ok) setPreviews(Object.fromEntries((r.data?.previews ?? []).map((x: any) => [x.id, x])));
+    }, 450);
+    return () => clearTimeout(t);
+  }, [JSON.stringify(drafts.map((d) => [d.id, d.category, d.targets, d.zone, d.allocation, d.resources]))]);
   const others = (p.view?.actors ?? []).filter((a: any) => a.id !== me?.id);
   const spent = useMemo(() => drafts.reduce((acc, d) => ({ political: acc.political + d.allocation.political, economic: acc.economic + d.allocation.economic, military: acc.military + d.allocation.military }), { political: 0, economic: 0, military: 0 }), [drafts]);
   const update = (i: number, patch: Partial<Draft>) => setDrafts((ds) => ds.map((d, j) => (j === i ? { ...d, ...patch } : d)));
@@ -288,6 +296,14 @@ export function DecisionsPhase({ p }: { p: PhaseProps }) {
             <Body style={{ fontSize: 13.5 }}>Action discrète (non annoncée publiquement)</Body>
           </View>
           <Field value={d.note} onChangeText={(t) => update(i, { note: t })} placeholder="Note au Président de séance (facultatif) : action recherchée, objectif, cibles, ressources proposées." />
+          {previews[d.id] ? (
+            <View style={{ borderLeftWidth: 2, borderLeftColor: previews[d.id].probability >= 0.6 ? C.green : previews[d.id].probability >= 0.4 ? C.amber : C.red, paddingLeft: S(3), gap: 4 }}>
+              <Label color={C.muted}>Estimation avant validation</Label>
+              <Text style={{ fontFamily: F.title, fontSize: 28, color: C.text }}>≈ {Math.round(previews[d.id].probability * 100)} % <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.muted }}>de chance d'aboutir</Text></Text>
+              <Body muted style={{ fontSize: 12.5 }}>{Object.entries(previews[d.id].factors as Record<string, number>).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 4).map(([k, v]) => `${k} ${v >= 0 ? "+" : "−"}`).join(" · ") || "Aucun facteur déterminant."}</Body>
+              <Label color={C.faint}>Estimation, pas une garantie : l'opposition des autres équipes et le tirage du moteur restent inconnus.</Label>
+            </View>
+          ) : null}
           {DECISIONS_NEEDING_ARBITRATION.includes(d.category) ? <Notice tone="warn">Cette action sera soumise à l'arbitrage du Président de séance, qui peut l'accepter, la refuser ou lui attribuer une probabilité d'aboutissement.</Notice> : null}
         </Panel>
       ))}
