@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import ai, cards, commitments, domestic, npc
+from . import ai, cards, commitments, domestic, dynamics, npc
 from .actions import CATALOG, Decision, resolve_decisions, validate
 from .ai.tasks import numbers_are_grounded, write_round_narrative
 from .balance import camp_shares, snapshot
@@ -146,6 +146,7 @@ def resolve_round(world: WorldState, decisions: list[dict[str, Any]], messages: 
         card_results.append(use)
     effects += commitments.update(world, outcome["results"])
     applied = apply_all(world, effects)
+    applied += apply_all(world, dynamics.step(world, outcome["results"]))
     applied += apply_all(world, _natural_evolution(world))
     applied += apply_all(world, domestic.generate(world))
 

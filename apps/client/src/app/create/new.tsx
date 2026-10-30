@@ -104,7 +104,7 @@ export default function NewSimulation() {
               <>
                 <Text style={{ fontFamily: F.title, fontSize: 28, color: C.text, lineHeight: 34 }}>{current.question}</Text>
                 <Field big value={answer} onChangeText={setAnswer} placeholder={current.hint || "Votre réponse"} style={{ minHeight: 140 }} />
-                <Label color={C.faint}>{current.generated_by?.startsWith("ai") ? "Question générée par l'IA à partir de vos réponses" : "Question choisie par les règles du moteur à partir de vos réponses (IA non configurée)"}</Label>
+                <Label color={C.faint}>{"Question choisie par le moteur à partir de votre description et de vos réponses précédentes"}</Label>
               </>
             ) : null}
             {answers.length ? (

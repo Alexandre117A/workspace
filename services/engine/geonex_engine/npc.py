@@ -105,6 +105,11 @@ def decide(world: WorldState, actor: Actor) -> list[Decision]:
     if not candidates:
         cand(0.3, "domestic_policy", [], None, "consolidation intérieure")
 
+    from . import dynamics
+
+    candidates = dynamics.adjust_npc_candidates(world, actor, candidates, rng)
+    if not candidates:
+        cand(0.3, "domestic_policy", [], None, "consolidation intérieure")
     # Tirage pondéré (softmax) : diversité des comportements entre sessions.
     best: dict[tuple, tuple] = {}
     for c in candidates:  # une même action (catégorie, cibles, zone) n'est proposée qu'une fois

@@ -44,7 +44,9 @@ def _has_credentials() -> bool:
 
 
 def available() -> bool:
-    if os.environ.get("GEONEX_AI", "on").lower() in {"off", "0", "false", "no"}:
+    # L'IA est retirée du fonctionnement normal : le moteur de règles (dynamics.py) la remplace.
+    # Elle ne s'active que sur demande explicite (GEONEX_AI=on) ET avec des identifiants.
+    if os.environ.get("GEONEX_AI", "off").lower() not in {"on", "1", "true", "yes"}:
         return False
     if not _has_credentials():
         return False

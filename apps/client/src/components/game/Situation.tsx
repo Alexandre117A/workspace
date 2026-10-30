@@ -1,5 +1,5 @@
 import { Text, View } from "react-native";
-import { Body, Label, Panel, statusLabel } from "../ui";
+import { Bar, Body, Label, Panel, statusLabel } from "../ui";
 import { GeoMap } from "../GeoMap";
 import { useLayout } from "../ui";
 import { C, F, S } from "../../theme";
@@ -61,6 +61,21 @@ export function Situation({ view, scenario }: { view: any; scenario?: any }) {
         ))}
         {view.wars?.length ? <Body style={{ fontSize: 13.5, color: C.red }}>États de guerre : {view.wars.map((w: string[]) => `${view.actors.find((a: any) => a.id === w[0])?.name} ↔ ${view.actors.find((a: any) => a.id === w[1])?.name}`).join(" ; ")}</Body> : null}
       </Panel>
+      {view.escalation?.length ? (
+        <Panel title="Échelle d'escalade" accent={C.red}>
+          {view.escalation.map((e: any) => {
+            const n = (id: string) => view.actors.find((a: any) => a.id === id)?.name ?? id;
+            return (
+              <View key={e.a + e.b} style={{ gap: 4 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontFamily: F.sansMed, color: C.text, fontSize: 14 }}>{n(e.a)} ↔ {n(e.b)}</Text><Text style={{ fontFamily: F.monoBold, fontSize: 11, color: e.rung >= 6 ? C.red : C.amber }}>PALIER {e.rung}/9</Text></View>
+                <Bar value={e.rung} max={9} color={e.rung >= 6 ? C.red : C.amber} height={4} />
+                <Label color={C.faint}>{e.label}</Label>
+              </View>
+            );
+          })}
+          <Label color={C.faint}>Du palier 6, chaque camp paie un coût réel ; du palier 8, le monde entier est touché.</Label>
+        </Panel>
+      ) : null}
       {events.length ? (
         <Panel title="Fil des événements publics">
           {events.map((e: any) => <Body key={e.id} style={{ fontSize: 13 }}><Text style={{ color: C.muted, fontFamily: F.mono }}>R{e.round} </Text>{e.title}</Body>)}

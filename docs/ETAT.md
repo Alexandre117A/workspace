@@ -2,6 +2,11 @@
 
 Mis à jour le 30 octobre 2026. Légende : ✅ terminé et testé · 🟡 partiel ou non testé en conditions réelles · ⛔ externe (clé, compte ou décision requise).
 
+## Changements de cap (30 octobre 2026)
+- **IA retirée** du fonctionnement : remplacée par `dynamics.py` — échelle d'escalade à 10 paliers par paire d'acteurs (coûts réels, effets mondiaux dès le palier 8), défense collective avec suivi des obligations (allié défaillant), dépendance économique qui amplifie les sanctions, lassitude de guerre, disponibilité opérationnelle, doctrines des acteurs non joués (dissuasion, opportunisme, équilibrage, médiation, prudence). *62 tests.* Limite : la reconstitution historique libre de n'importe quelle période n'est plus possible sans IA ; trois bases détaillées existent (Cuba 1962, Égypte 1799, Cent Ans 1415) et d'autres peuvent être ajoutées à la main.
+- **Voix retirée** : les participants écrivent. Le code serveur LiveKit reste inactif.
+- **Fond animé** : uniquement des photographies d'archives, tirage différent à chaque visite, détection automatique des fichiers déposés dans `apps/client/assets/chronique/`. Actuellement 4 photos NASA ; les photos historiques (armes, navires, sous-marins, drones, centres de commandement) restent à ajouter (voir `docs/CREDITS.md`).
+
 ## Complet et testé
 - ✅ **Moteur de simulation** (Python) : état du monde, quatre niveaux d'information, probabilités bornées avec tirages reproductibles et journal d'audit, planification selon durée et nombre d'équipes (30 min minimum), acteurs non joués, mémoire des engagements, capitaux et ressources (consommation, immobilisation, reconstitution), situation intérieure, classement sur 100, mentions, archives. *56 tests pytest.*
 - ✅ **Scénarios** : contemporain (États identifiés, table de référence marquée « estimation », recherche datée), historique (3 bases intégrées sans connaissance du dénouement), univers fictif (génération procédurale, carte schématique signalée comme telle), questions adaptatives 2 à 5, progression réelle de la préparation avec gestion du dépassement de délai.

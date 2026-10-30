@@ -3,7 +3,6 @@ import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from "re
 import { DECISION_LABELS, DECISIONS_NEEDING_ARBITRATION, DECISIONS_NEEDING_TARGET, DecisionCategory, MAX_ALLOCATION_PER_DECISION, MAX_DECISIONS_PER_ROUND } from "@geonex/shared";
 import { Body, Btn, Chip, Divider, Field, Label, Notice, Panel, Stepper } from "../ui";
 import { Ack, fmtClock, remaining, useNow } from "../../lib/game";
-import { VoiceChannel } from "./Voice";
 import { C, F, S } from "../../theme";
 
 export interface PhaseProps {
@@ -120,7 +119,7 @@ export function AssemblyPhase({ p }: { p: PhaseProps }) {
           ))}
         </ScrollView>
       </View>
-      {p.voice ? <VoiceChannel sessionId={p.sessionId} channel="assembly" enabled speaking={speaking} roomKey={`${p.runtime.round}:${a.speaker}:${a.mode}`} /> : <Label color={C.faint}>Canal vocal non configuré : interventions écrites, diffusées à tous</Label>}
+      <Label color={C.faint}>Interventions écrites, diffusées en direct à toutes les délégations</Label>
       {speaking ? (
         <View style={{ gap: S(2) }}>
           <Field value={text} onChangeText={setText} placeholder="Votre déclaration publique" multiline style={{ minHeight: 70 }} />
@@ -170,8 +169,7 @@ export function DiplomacyPhase({ p }: { p: PhaseProps }) {
             <Btn small label="Envoyer" disabled={!text.trim()} busy={busy === "msg"} onPress={async () => { if ((await run("msg", "diplomacy:message", { text })).ok) setText(""); }} />
             <Btn small variant="danger" label="Raccrocher" onPress={() => call && run("hang", "diplomacy:hangup", { callId: call.id })} />
           </View>
-          {p.voice ? <VoiceChannel sessionId={p.sessionId} channel="call" enabled speaking roomKey={call.id} /> : null}
-          <Label color={C.faint}>Aucune autre délégation ne peut lire ou entendre cet échange. {p.voice ? "" : "Canal vocal non configuré : échange écrit."}</Label>
+                    <Label color={C.faint}>Aucune autre délégation ne peut lire cet échange.</Label>
         </Panel>
       ) : null}
       {incoming.map((inv: any) => (

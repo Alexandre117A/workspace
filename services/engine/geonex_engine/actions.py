@@ -10,6 +10,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+from . import dynamics
 from .models import Actor, AuditRecord, CAPITAL_KEYS, Effect, ResourceLock, WorldState
 from .probability import OUTCOME_LABEL_FR, OUTCOME_MAGNITUDE, assess, draw, investment, rng_for
 
@@ -137,6 +138,8 @@ def assess_decision(world: WorldState, d: Decision, round_decisions: list[Decisi
         "ressources": 0.45 * math.log1p(res_total),
         "stabilité": (actor.stability - 50) / 70,
     }
+    if d.category in ("military_strike", "military_deployment", "covert_operation"):
+        factors["disponibilité opérationnelle"] = (actor.readiness - 70) / 60
     if target is not None:
         if spec["hostile"]:
             factors["capacités"] = (_rel_capital(actor, d.category) - _rel_capital(target, d.category)) / 32
@@ -215,8 +218,9 @@ def effects_for(world: WorldState, d: Decision, outcome: str, round_decisions: l
             both_tension(-5 * max(m, 0))
         add(actor.id, "political", 2 if m > 0 else -1)
     elif c == "sanctions" and target:
-        add(target.id, "economic", -6 * max(m, 0.15))
-        add(actor.id, "economic", -1.5, "Coût des sanctions imposées")
+        # Effet réel selon la dépendance économique : plus la cible dépend de l'émetteur, plus elle souffre.
+        add(target.id, "economic", -6 * max(m, 0.15) * (0.7 + 0.9 * dynamics.dependency(world, target.id, actor.id)))
+        add(actor.id, "economic", -1.5 * (0.7 + 0.9 * dynamics.dependency(world, actor.id, target.id)), "Coût des sanctions imposées")
         both_trust(-10)
         both_tension(8)
         if outcome == "backfire":

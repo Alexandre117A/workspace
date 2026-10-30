@@ -121,6 +121,8 @@ class Actor(BaseModel):
     personality: Personality = Field(default_factory=Personality)
     regions: list[Region] = Field(default_factory=list)
     history: list[dict[str, Any]] = Field(default_factory=list)
+    readiness: float = 85.0  # disponibilité opérationnelle des forces (20..100)
+    weariness: float = 0.0  # lassitude de guerre (0..100)
 
     def resource(self, key: str) -> Optional[Resource]:
         return next((r for r in self.resources if r.key == key), None)
@@ -400,6 +402,8 @@ class WorldState(BaseModel):
     generation: Generation = Field(default_factory=Generation)
     id_counter: int = 0
     finished: bool = False
+    escalation: dict[str, int] = Field(default_factory=dict)  # paire -> palier d'escalade (0..9)
+    obligations: list[dict[str, Any]] = Field(default_factory=list)  # engagements d'alliance déclenchés par des frappes
 
     def next_id(self, prefix: str) -> str:
         self.id_counter += 1

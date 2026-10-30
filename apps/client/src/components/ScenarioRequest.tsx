@@ -56,13 +56,7 @@ export function ScenarioRequest({ mode }: { mode: "contemporary" | "historical" 
             </Pressable>
           ))}
         </View>
-        {cfg && !cfg.features.ai ? (
-          <Notice tone="info">
-            {mode === "contemporary"
-              ? "Fournisseur IA non configuré : le moteur identifie les États cités et construit la situation à partir de sa table de référence (estimations) et, si le réseau le permet, de Wikipédia et Wikidata (sources datées)."
-              : "Fournisseur IA non configuré : seules les bases historiques intégrées sont disponibles (Cuba 1962, Égypte 1799, Cent Ans 1415). La reconstitution libre de toute période nécessite la clé IA."}
-          </Notice>
-        ) : null}
+        <Notice tone="info">{mode === "contemporary" ? "Le moteur identifie les États cités et construit la situation à partir de ses données de référence (estimations signalées comme telles)." : "Bases historiques détaillées disponibles : crise des missiles de Cuba (1962), campagne d'Égypte (1799), guerre de Cent Ans (1415). Aucun acteur ne connaît la suite de l'histoire."}</Notice>
         {mode === "historical" ? <Body muted style={{ fontSize: 13.5 }}>Aucun acteur ne connaîtra les événements postérieurs à la date de départ : l'histoire peut diverger dès le premier round.</Body> : null}
         <SessionParams teams={teams} duration={duration} onTeams={setTeams} onDuration={setDuration} />
         {error ? <Notice tone="error">{error}</Notice> : null}

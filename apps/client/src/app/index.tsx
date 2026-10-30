@@ -145,7 +145,7 @@ export default function Home() {
       <View style={{ marginTop: S(8), flexDirection: "row", flexWrap: "wrap", gap: S(4), justifyContent: "space-between" }}>
         {user?.role === "owner" ? (
           <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>
-          {error ? "Serveur injoignable" : cfg ? `Moteur ${cfg.features.engine ? "en ligne" : "injoignable"} · IA ${cfg.features.ai ? "active" : "non configurée"} · Voix ${cfg.features.voice ? "active" : "non configurée"}` : "…"}
+          {error ? "Serveur injoignable" : cfg ? `Moteur ${cfg.features.engine ? "en ligne" : "injoignable"}` : "…"}
         </Text>) : <View />}
         <Text style={{ color: C.faint, fontFamily: F.mono, fontSize: 11 }}>GEONEX · gratuit · sans publicité</Text>
       </View>

@@ -34,7 +34,7 @@ export function CapitalPanel({ view, report }: { view: any; report: any }) {
         );
       })}
       <Panel title="Indicateurs intérieurs">
-        {[["Stabilité intérieure", me.stability], ["Cohésion nationale", me.cohesion], ["Approbation du gouvernement", me.approval]].map(([l, v]) => (
+        {[["Stabilité intérieure", me.stability], ["Cohésion nationale", me.cohesion], ["Approbation du gouvernement", me.approval], ["Disponibilité opérationnelle des forces", me.readiness ?? 85], ["Lassitude de guerre", me.weariness ?? 0]].map(([l, v]) => (
           <View key={l as string} style={{ gap: 4 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Body style={{ fontSize: 13.5 }}>{l}</Body><Text style={{ fontFamily: F.monoBold, color: C.text }}>{Math.round(v as number)}/100</Text></View>
             <Bar value={v as number} color={C.steel} height={4} />

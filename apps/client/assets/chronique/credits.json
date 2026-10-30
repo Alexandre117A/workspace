@@ -4,27 +4,39 @@
     "title": "International Space Station (ISS)",
     "credit": "MSFC",
     "date": "1999-09-01",
-    "source": "https://images.nasa.gov/details/9905998"
+    "source": "https://images.nasa.gov/details/9905998",
+    "year": "1999",
+    "label": "Station spatiale internationale",
+    "theme": "espace"
   },
   {
     "file": "nasa-200623_ISS_1.jpg",
     "title": "2020 International Space Station Configuration",
     "credit": "JSC",
     "date": "2020-06-24",
-    "source": "https://images.nasa.gov/details/200623_ISS_1"
+    "source": "https://images.nasa.gov/details/200623_ISS_1",
+    "year": "2020",
+    "label": "Orbite : un espace stratégique",
+    "theme": "espace"
   },
   {
     "file": "nasa-iss070e062746.jpg",
     "title": "iss070e062746",
     "credit": "JSC",
     "date": "2024-01-10",
-    "source": "https://images.nasa.gov/details/iss070e062746"
+    "source": "https://images.nasa.gov/details/iss070e062746",
+    "year": "2024",
+    "label": "La Terre de nuit",
+    "theme": "espace"
   },
   {
     "file": "nasa-s36-39-014.jpg",
     "title": "STS-36 night Earth observation of New York City, New York",
     "credit": "JSC",
     "date": "1990-03-03",
-    "source": "https://images.nasa.gov/details/s36-39-014"
+    "source": "https://images.nasa.gov/details/s36-39-014",
+    "year": "1990",
+    "label": "New York de nuit · mission STS-36",
+    "theme": "espace"
   }
 ]

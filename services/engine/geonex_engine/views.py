@@ -14,6 +14,7 @@ from typing import Any
 
 from . import cards as cards_mod
 from .actions import CATALOG
+from . import dynamics
 from .balance import camp_shares, ranking
 from .intel import public_report
 from .models import WorldState
@@ -59,6 +60,8 @@ def public_view(world: WorldState) -> dict[str, Any]:
         "plan": world.plan.model_dump(),
         "catalog": {k: v["label"] for k, v in CATALOG.items()},
         "wars": [[r.a, r.b] for r in world.relations.values() if r.at_war],
+        "escalation": dynamics.ladder_view(world, 4),
+        "ladder": dynamics.LADDER,
     }
 
 
@@ -71,6 +74,7 @@ def team_view(world: WorldState, actor_id: str) -> dict[str, Any]:
         "capitals": a.capitals.model_dump(),
         "initial_capitals": a.initial_capitals.model_dump(),
         "stability": a.stability, "cohesion": a.cohesion, "approval": a.approval,
+        "readiness": a.readiness, "weariness": a.weariness, "doctrine": dynamics.doctrine(a),
         "indicators_source": a.indicators_source.model_dump(),
         "resources": [{"key": r.key, "label": r.label, "quantity": r.quantity, "available": a.available(r.key), "unit": r.unit, "category": r.category,
                        "usable": r.usable, "abstraction": r.abstraction, "status": r.source.status} for r in a.resources],
@@ -109,7 +113,8 @@ def president_view(world: WorldState) -> dict[str, Any]:
                             "history": [{"round": h["round"], "shares": h["shares"]} for h in world.balance_history]}
     view["ranking"] = ranking(world)
     view["actors_detail"] = [{"id": a.id, "name": a.name, "controlled_by": a.controlled_by, "camp": a.camp, "capitals": a.capitals.model_dump(),
-                              "stability": a.stability, "approval": a.approval, "cohesion": a.cohesion, "engagement": a.engagement}
+                              "stability": a.stability, "approval": a.approval, "cohesion": a.cohesion, "engagement": a.engagement,
+                              "readiness": a.readiness, "weariness": a.weariness, "doctrine": dynamics.doctrine(a)}
                              for a in world.actors.values()]
     view["dominant"] = [r for r in view["ranking"][:3]]
     view["troubled"] = [{"id": a.id, "name": a.name, "stability": a.stability} for a in world.actors.values() if a.stability < 35 or a.capitals.total() < 0.7 * a.initial_capitals.total()]
