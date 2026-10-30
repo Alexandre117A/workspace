@@ -1,6 +1,44 @@
 # Déploiement et publication
 
-Rien n'est déployé ni publié : aucun compte, service payant ou dépôt distant n'a été créé. Ce document décrit ce qui reste à faire, et ce que cela demande.
+## Hébergement gratuit permanent (PC éteint) — Render + Neon
+
+GEONEX tourne alors sur Internet sans votre ordinateur. Tout est gratuit, **sans carte bancaire**, et se fait avec votre compte GitHub.
+
+| Rôle | Service | Fichier du dépôt |
+|---|---|---|
+| Moteur + API temps réel + site web (un seul conteneur) | **Render** (offre gratuite) | `render.yaml`, `Dockerfile`, `scripts/serve.mjs` |
+| Base de données (comptes, parties, archives) | **Neon** PostgreSQL (offre gratuite) | variable `DATABASE_URL` |
+| Maintien en éveil | GitHub Actions (gratuit sur dépôt public) | `.github/workflows/keepalive.yml` |
+
+Pourquoi une base externe : le disque d'un service gratuit Render est **effacé à chaque redémarrage**. Sans PostgreSQL externe, comptes et parties disparaîtraient.
+
+### Étapes (une dizaine de minutes)
+1. **Neon** — https://neon.com › *Sign up* avec GitHub › *Create project* (région Europe, ex. Frankfurt). Sur le tableau de bord, bouton *Connect* : copiez la **connection string** (`postgresql://…`). Gardez-la pour l'étape 3 ; ne la collez nulle part ailleurs (c'est un mot de passe).
+2. **Render** — https://render.com › *Sign up* avec GitHub › *New* › **Blueprint** › autorisez l'accès au dépôt › choisissez-le › Render lit `render.yaml`.
+3. Render demande les variables marquées « à saisir » : **`DATABASE_URL`** = la chaîne Neon ; `GEONEX_OWNER_EMAILS` = votre e-mail de compte GEONEX (donne le rôle propriétaire) ; `GEONEX_RESEARCH_CONTACT` = e-mail ou URL de contact (exigé par Wikipédia pour les recherches ; facultatif). Les secrets `GEONEX_JWT_SECRET` et `GEONEX_ENGINE_TOKEN` sont générés automatiquement. Cliquez *Apply*.
+4. Attendez la fin de la construction (≈ 5 à 10 min la première fois). L'adresse publique est de la forme `https://geonex-xxxx.onrender.com`.
+5. Vérifiez : `node scripts/smoke.mjs https://geonex-xxxx.onrender.com` (santé, site, compte invité, préparation d'une simulation, session, WebSocket).
+6. **Éveil permanent** — dépôt GitHub › *Settings › Secrets and variables › Actions › Variables › New repository variable* : `GEONEX_PUBLIC_URL` = l'adresse Render (sans « / » final). La tâche `keepalive.yml` la sollicite toutes les 10 minutes.
+7. (Facultatif) Même endroit, variable `GEONEX_API_URL` = la même adresse : le site GitHub Pages (`https://<compte>.github.io/<dépôt>/`) parlera alors à ce serveur et deviendra jouable.
+
+### Ce que l'offre gratuite implique (à savoir)
+- **Mise en veille** : Render endort un service gratuit après 15 minutes sans visite ; le réveil prend environ une minute. La tâche d'éveil l'évite presque toujours, mais GitHub exécute les tâches planifiées « au mieux » (retards possibles) et les **désactive après 60 jours sans activité** dans le dépôt : un envoi de code ou un clic sur *Run workflow* les relance.
+- **Quota** : 750 heures d'instance par mois et par compte Render, soit le mois entier pour un seul service. Aucun autre service gratuit dans le même compte ne doit tourner en continu.
+- **Mémoire** : 512 Mo. Mesuré en local : ≈ 140 Mo au repos. Une instance unique (pas de répartition de charge) : un service gratuit ne peut pas être dupliqué.
+- **Redémarrages** : Render redémarre régulièrement les services gratuits. Comptes, scénarios, sessions et archives sont dans PostgreSQL ; au redémarrage, les parties en cours sont restaurées depuis leur dernier état et leurs chronomètres reprennent sur leurs échéances d'origine (le temps passé à l'arrêt compte). Une préparation de simulation interrompue par un redémarrage est à relancer. La reprise d'une partie en cours après redémarrage n'a pas été rejouée sur PostgreSQL ici (seul le retour des sessions en salle d'attente l'a été).
+- **Protection** : l'API limite le débit par adresse IP (60 créations de comptes/min, 40 créations de sessions/min, 1500 requêtes/min) et refuse l'ancien secret par défaut (`GEONEX_JWT_SECRET` obligatoire en production).
+- **Données** : la base Neon gratuite est limitée (0,5 Go) ; c'est largement suffisant pour des milliers de parties de texte.
+- **Pas d'IA, pas de voix, pas de publicité** : tout est déjà désactivé par défaut.
+
+### Ce qui a été vérifié, et ce qui ne l'a pas été
+Vérifié ici : API + moteur + site en conditions de production (`NODE_ENV=production`, `scripts/serve.mjs`) sur un **vrai PostgreSQL 18**, avec les deux tests d'intégration complets, le contrôle `scripts/smoke.mjs`, la limite de débit, la navigation directe (SPA) et le redémarrage à froid (les comptes, scénarios et sessions survivent). Les dépendances de production de l'API ont été installées seules, comme dans l'image.
+**Non vérifié** : la construction de l'image Docker elle-même (Docker n'est pas installé ici) et le comportement réel de Render/Neon. Le premier déploiement peut donc demander un ajustement ; les journaux de construction de Render indiquent l'étape en cause.
+
+---
+
+# Autres options et référence
+
+Rien d'autre n'est déployé ni publié. Architecture générale :
 
 ## Architecture à héberger
 | Composant | Rôle | Fichier |

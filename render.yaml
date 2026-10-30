@@ -1,0 +1,25 @@
+# Hébergement GRATUIT sur Render (https://render.com) : un seul service qui contient le moteur, l'API temps réel et le site.
+# Mode d'emploi pas à pas : docs/DEPLOIEMENT.md. La base PostgreSQL est externe et gratuite (Neon) : elle conserve les comptes
+# et les parties même quand le service redémarre (le disque d'un service gratuit est effacé à chaque redémarrage).
+services:
+  - type: web
+    name: geonex
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEONEX_JWT_SECRET
+        generateValue: true
+      - key: GEONEX_ENGINE_TOKEN
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: GEONEX_OWNER_EMAILS
+        sync: false
+      - key: GEONEX_RESEARCH_CONTACT
+        sync: false

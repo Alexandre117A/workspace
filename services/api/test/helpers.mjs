@@ -1,4 +1,5 @@
 // Démarre un vrai moteur Python et une vraie API (PGlite en mémoire) pour les tests d'intégration.
+// GEONEX_TEST_DATABASE_URL=postgres://… : exécute les mêmes tests sur un vrai PostgreSQL (chemin de production, base vide requise).
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -34,7 +35,8 @@ export async function startStack({ timeScale = 0.05, owners = "" } = {}) {
     await sleep(150);
   }
   Object.assign(process.env, {
-    GEONEX_DB: "memory", GEONEX_ENGINE_URL: engineUrl, GEONEX_ENGINE_TOKEN: "test-token", GEONEX_TIME_SCALE: String(timeScale),
+    GEONEX_DB: process.env.GEONEX_TEST_DATABASE_URL ? "postgres" : "memory", GEONEX_RATE_LIMIT: "off", ...(process.env.GEONEX_TEST_DATABASE_URL ? { DATABASE_URL: process.env.GEONEX_TEST_DATABASE_URL } : {}),
+    GEONEX_ENGINE_URL: engineUrl, GEONEX_ENGINE_TOKEN: "test-token", GEONEX_TIME_SCALE: String(timeScale),
     GEONEX_JWT_SECRET: "test-secret-0123456789", GEONEX_OWNER_EMAILS: owners, GEONEX_QUIET: "1",
   });
   const { createApp } = require(join(root, "services", "api", "dist", "main.js"));
