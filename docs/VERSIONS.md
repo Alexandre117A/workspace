@@ -52,6 +52,6 @@ essayer la nouvelle version sur une base Neon séparée (une « branche » Neon,
 Développée sur la branche `v2`, **sans toucher à `main`** : le site public (https://geonex.onrender.com) reste donc en v1 tant
 que `v2` n'est pas fusionnée. Pour l'essayer en local : `git switch v2` puis `Lancer GEONEX.bat`. Pour la mettre en ligne
 après approbation : `git switch main && git merge v2 && git push origin main`. Pour y renoncer : `git switch main`.
-Description : `docs/ATLAS.md`.
+Description : `docs/ATLAS.md` (identité et atlas) et `docs/PLATEFORME.md` (comptes, espace personnel, bibliothèque, documentation).
 
 Aperçu en ligne (second service gratuit, à côté de la version stable) : `docs/DEPLOIEMENT.md`, section « Aperçu en ligne de la v2 » ; définition : `render.preview.yaml`.

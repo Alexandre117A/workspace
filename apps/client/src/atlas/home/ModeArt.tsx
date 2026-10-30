@@ -146,7 +146,7 @@ export function WorldBuildArt({ width, height, hovered }: { width: number; heigh
       ) : null}
       <Svg width={width} height={height}>
         <Defs>
-          <LinearGradient id="m3fade" x1="0" y1="0" x2="1" y2="0"><Stop offset="0" stopColor="#0A1626" stopOpacity="0.97" /><Stop offset="0.5" stopColor="#0A1626" stopOpacity="0.88" /><Stop offset="0.82" stopColor="#0A1626" stopOpacity="0.3" /><Stop offset="1" stopColor="#0A1626" stopOpacity="0.1" /></LinearGradient>
+          <LinearGradient id="m3fade" x1="0" y1="0" x2="1" y2="0"><Stop offset="0" stopColor="#0A1626" stopOpacity="0.97" /><Stop offset="0.62" stopColor="#0A1626" stopOpacity="0.9" /><Stop offset="0.9" stopColor="#0A1626" stopOpacity="0.32" /><Stop offset="1" stopColor="#0A1626" stopOpacity="0.1" /></LinearGradient>
           <LinearGradient id="m3tint" x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor="#10233D" stopOpacity="0.35" /><Stop offset="1" stopColor="#0B1420" stopOpacity="0.55" /></LinearGradient>
         </Defs>
         <Rect width={width} height={height} fill="url(#m3tint)" />
