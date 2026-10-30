@@ -96,7 +96,7 @@ async function main() {
     console.log(`${count} équipe(s) de test dans la session ${arg}.`);
   } else if (mode === "host") {
     const { token } = await api("/auth/guest", { displayName: "Président de test" });
-    const { jobId } = await api("/scenarios/jobs", { mode: "contemporary", prompt: arg, players: count }, token);
+    const { jobId } = await api("/scenarios/jobs", { mode: process.env.GEONEX_BOT_MODE ?? "contemporary", prompt: arg, players: count }, token);
     let job;
     do { await sleep(800); job = await api(`/scenarios/jobs/${jobId}`, undefined, token); } while (!["done", "failed"].includes(job.status));
     if (job.status === "failed") throw new Error(job.error);

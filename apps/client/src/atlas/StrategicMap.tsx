@@ -58,7 +58,8 @@ export function StrategicMap({ ctx, width, height, compact = false, onSelect, fo
     if (fictional || !topo) return null;
     const countries: any[] = (feature(topo, topo.objects.countries) as any).features;
     const focusSet = new Set(ctx.geography.focusIso.map(norm));
-    const focus = countries.filter((f) => focusSet.has(norm(f.id))).map(mainland);
+    // Fond « côtes seules » (époques anciennes) : les pays actuels n'ont aucune valeur pour cadrer la scène, on s'ajuste aux repères du scénario.
+    const focus = ctx.geography.basemap === "land" && ctx.zones.length ? [] : countries.filter((f) => focusSet.has(norm(f.id))).map(mainland);
     const coords: [number, number][] = [];
     const add = (p: AtlasPoint) => { if (p.lon != null && p.lat != null) coords.push([p.lon, p.lat]); };
     if (frameAll) ctx.actors.forEach((a) => a.points.forEach(add));
