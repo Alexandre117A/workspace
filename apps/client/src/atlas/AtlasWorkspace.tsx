@@ -163,8 +163,9 @@ export function TeamWorkspace({ view, ctx, previous, decision, access, notice, b
   }
 
   // Ordinateur : décision · atlas · synthèse
-  const leftW = 520, rightW = 380, gap = S(4);
-  const centerW = Math.max(420, Math.min(width, 1800) - leftW - rightW - gap * 4);
+  const gap = S(4), total = Math.min(width, 1800);
+  const leftW = Math.round(Math.min(520, Math.max(410, total * 0.32))), rightW = Math.round(Math.min(400, Math.max(330, total * 0.26)));
+  const centerW = Math.max(460, total - leftW - rightW - gap * 4);
   const mapH = Math.max(380, (box.h || height - 170) - 190);
   return (
     <View style={{ flex: 1, flexDirection: "row", gap, padding: gap, justifyContent: "center" }} onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
