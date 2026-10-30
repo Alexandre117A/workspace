@@ -32,7 +32,8 @@ Pourquoi une base externe : le disque d'un service gratuit Render est **effacé 
 
 ### Ce qui a été vérifié, et ce qui ne l'a pas été
 Vérifié ici : API + moteur + site en conditions de production (`NODE_ENV=production`, `scripts/serve.mjs`) sur un **vrai PostgreSQL 18**, avec les deux tests d'intégration complets, le contrôle `scripts/smoke.mjs`, la limite de débit, la navigation directe (SPA) et le redémarrage à froid (les comptes, scénarios et sessions survivent). Les dépendances de production de l'API ont été installées seules, comme dans l'image.
-**Non vérifié** : la construction de l'image Docker elle-même (Docker n'est pas installé ici) et le comportement réel de Render/Neon. Le premier déploiement peut donc demander un ajustement ; les journaux de construction de Render indiquent l'étape en cause.
+**Déploiement réel (30 octobre 2026)** : l'image Docker a été construite par Render du premier coup, le service est en ligne sur https://geonex.onrender.com et `node scripts/smoke.mjs https://geonex.onrender.com` passe entièrement (API, moteur, site, navigation directe, compte invité, préparation d'une simulation, création de session, WebSocket) avec la base Neon en connexion chiffrée.
+**Non vérifié** : le réveil après mise en veille (délai réel), le comportement sous charge, et la reprise d'une partie en cours après un redémarrage de Render.
 
 ---
 
