@@ -27,7 +27,8 @@
     "share": "node scripts/share.mjs",
     "smoke": "node scripts/smoke.mjs",
     "start:prod": "node scripts/serve.mjs",
-    "logos": "node scripts/engine.mjs ../../scripts/prepare-mode-logos.py"
+    "logos": "node scripts/engine.mjs ../../scripts/prepare-mode-logos.py",
+    "brand": "node scripts/engine.mjs ../../scripts/prepare-brand.py"
   },
   "engines": {
     "node": ">=20"

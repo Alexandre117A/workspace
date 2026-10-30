@@ -54,12 +54,12 @@ export default function Prepare() {
     router.replace("/");
   };
 
-  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
+  const breathe = spin.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.94, 1.04, 0.94] });
   return (
     <Screen max={760}>
       <View style={{ gap: S(6), paddingTop: S(6) }}>
         <View style={{ alignItems: "center", gap: S(4) }}>
-          <Animated.View style={{ transform: [{ rotate }] }}><Emblem size={84} /></Animated.View>
+          <Animated.View style={{ transform: [{ scale: breathe }] }}><Emblem size={84} /></Animated.View>
           <Label color={C.brass}>Préparation de l'univers</Label>
           <Text style={{ fontFamily: F.title, fontSize: 30, color: C.text, textAlign: "center" }}>
             {job?.status === "failed" ? "Préparation interrompue" : creating ? "Ouverture de la session privée…" : "Le moteur construit votre simulation"}
