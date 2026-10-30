@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import { feature } from "topojson-client";
+import { feature, mesh } from "topojson-client";
 import { geoInterpolate } from "d3-geo";
 import { API_URL } from "../../lib/api";
 import { useTopo } from "../../components/GeoMap";
 
 export type XY = [number, number];
 
-/** Géographie mondiale (Natural Earth, domaine public) chargée une fois : pays et masse terrestre. */
-export function useWorld() {
-  const topo = useTopo("countries-50m");
-  return useMemo(() => (topo ? { countries: (feature(topo, topo.objects.countries) as any).features as any[], land: feature(topo, topo.objects.land) as any } : null), [topo]);
+/** Géographie mondiale (Natural Earth, domaine public) chargée une fois : pays, masse terrestre, frontières. 110m = léger, 50m = détaillé. */
+export function useWorld(res: "50m" | "110m" = "50m") {
+  const topo = useTopo(res === "110m" ? "countries-110m" : "countries-50m");
+  return useMemo(() => (topo ? {
+    countries: (feature(topo, topo.objects.countries) as any).features as any[],
+    land: feature(topo, topo.objects.land) as any,
+    borders: mesh(topo, topo.objects.countries, (a: any, b: any) => a !== b) as any,
+  } : null), [topo]);
 }
 
 /** Arc de grand cercle entre deux points, projeté (l'itinéraire le plus court sur le globe, pas une droite sur la carte). */

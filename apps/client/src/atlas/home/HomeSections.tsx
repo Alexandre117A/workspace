@@ -3,7 +3,7 @@ import { Animated, Platform, Pressable, Text, View } from "react-native";
 import { formatJoinCode, isValidJoinCode } from "@geonex/shared";
 import { Field, Notice, useReducedMotion } from "../../components/ui";
 import { C, F, S } from "../../theme";
-import { HeroMap } from "./HeroMap";
+import { HeroGlobe } from "./HeroGlobe";
 
 const FADE: any = Platform.OS === "web" ? { transitionProperty: "transform, opacity, background-color, border-color", transitionDuration: "220ms", transitionTimingFunction: "ease" } : {};
 
@@ -34,8 +34,7 @@ function HeroButton({ label, onPress, primary }: { label: string; onPress: () =>
 /** HERO : titre et appel à l'action à gauche, atlas d'Europe, de Méditerranée et d'Eurasie à droite. */
 export function Hero({ width, desktop, phone, onExplore, onCreate }: { width: number; desktop: boolean; phone: boolean; onExplore: () => void; onCreate: () => void }) {
   const gap = S(8);
-  const mapW = desktop ? Math.min(640, Math.round((width - gap) * 0.52)) : width;
-  const mapH = desktop ? Math.round(mapW * 0.8) : phone ? Math.round(width * 0.95) : Math.round(width * 0.62);
+  const globe = desktop ? Math.min(600, Math.round((width - gap) * 0.52)) : Math.min(width, 560);
   return (
     <View style={{ flexDirection: desktop ? "row" : "column", alignItems: desktop ? "center" : "stretch", gap, marginBottom: S(phone ? 10 : 16) }}>
       <View style={{ flex: desktop ? 1 : undefined, gap: S(5) }}>
@@ -62,7 +61,7 @@ export function Hero({ width, desktop, phone, onExplore, onCreate }: { width: nu
           </View>
         </Reveal>
       </View>
-      <Reveal delay={300}><HeroMap width={mapW} height={mapH} /></Reveal>
+      <Reveal delay={300}><View style={{ alignItems: "center" }}><HeroGlobe size={globe} /></View></Reveal>
     </View>
   );
 }

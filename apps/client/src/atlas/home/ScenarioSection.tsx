@@ -6,7 +6,7 @@ import { geoCentroid, geoMercator, geoPath } from "d3-geo";
 import { mainland } from "../../components/GeoMap";
 import { C, F, MODE_STYLE, S } from "../../theme";
 import { MAP_STYLES } from "../styles";
-import { PaperGrain } from "./HeroMap";
+import { PaperGrain } from "./PaperGrain";
 import { CatalogEntry, useCatalog, useWorld } from "./world";
 
 const norm = (id: unknown) => String(id).padStart(3, "0");

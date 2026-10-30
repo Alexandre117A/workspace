@@ -21,9 +21,24 @@ export async function createApp() {
   const webDir = process.env.GEONEX_WEB_DIR ?? join(__dirname, "..", "..", "..", "apps", "client", "dist");
   if (existsSync(join(webDir, "index.html"))) {
     const express = require("express");
-    app.use(express.static(webDir, { index: false, maxAge: "1h" }));
+    // Fichiers à empreinte (JS, images, polices) : conservés un an. La page d'entrée n'est jamais mise en cache : après un
+    // déploiement, un visiteur reçoit tout de suite les nouveaux noms de fichiers.
+    app.use(express.static(webDir, {
+      index: false,
+      maxAge: "1h",
+      setHeaders: (res: any, file: string) => {
+        const f = file.replace(/\\/g, "/");
+        if (f.includes("/_expo/static/") || f.includes("/assets/")) res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        else if (f.endsWith(".html")) res.setHeader("Cache-Control", "no-cache");
+      },
+    }));
+    // Un fichier qui n'existe plus (onglet resté ouvert avant un déploiement) doit répondre 404, jamais la page d'accueil : sinon le
+    // navigateur tente d'exécuter du HTML comme du JavaScript et affiche « Loading module … failed ».
+    const FILE = /\.(?:js|mjs|css|map|png|jpe?g|webp|gif|svg|ico|ttf|otf|woff2?|json|webmanifest|txt)$/i;
     app.use((req: any, res: any, next: () => void) => {
       if (req.method !== "GET" || req.path.startsWith("/api") || req.path.startsWith("/socket.io")) return next();
+      if (req.path.startsWith("/_expo/") || FILE.test(req.path)) return res.status(404).type("text/plain").send("Introuvable");
+      res.setHeader("Cache-Control", "no-cache");
       res.sendFile("index.html", { root: webDir });
     });
   }

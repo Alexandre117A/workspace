@@ -7,7 +7,7 @@ import { CormorantGaramond_400Regular, CormorantGaramond_500Medium_Italic, Cormo
 import { IBMPlexSans_400Regular, IBMPlexSans_500Medium, IBMPlexSans_600SemiBold } from "@expo-google-fonts/ibm-plex-sans";
 import { IBMPlexMono_400Regular, IBMPlexMono_600SemiBold } from "@expo-google-fonts/ibm-plex-mono";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import type { ErrorBoundaryProps } from "expo-router";
 import { AuthProvider, useAuth } from "../lib/auth";
 import { Chronicle, ChronicleVeil } from "../components/Chronicle";
@@ -16,12 +16,23 @@ import { C, F } from "../theme";
 
 /** Barrière d'erreur globale : jamais d'écran vide ; la session reprend après « Réessayer ». */
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  // Un fichier de l'application introuvable signifie presque toujours qu'une nouvelle version a été installée pendant que cet onglet
+  // restait ouvert : on recharge la page une fois (garde-fou contre les boucles), au lieu d'afficher une erreur technique.
+  const stale = /Loading module|ChunkLoadError|dynamically imported module|Importing a module script failed|Loading chunk/i.test(String(error?.message ?? ""));
+  useEffect(() => {
+    if (!stale || Platform.OS !== "web") return;
+    try {
+      const last = Number(sessionStorage.getItem("geonex-reload") ?? 0);
+      if (Date.now() - last > 30_000) { sessionStorage.setItem("geonex-reload", String(Date.now())); window.location.reload(); }
+    } catch { /* stockage indisponible : le bouton ci-dessous reste utilisable */ }
+  }, [stale]);
+  const again = () => (stale && Platform.OS === "web" ? window.location.reload() : retry());
   return (
     <View style={{ flex: 1, backgroundColor: C.bg, alignItems: "center", justifyContent: "center", padding: 32, gap: 16 }}>
       <Text style={{ fontFamily: F.monoBold, color: C.red, letterSpacing: 3, fontSize: 12 }}>INCIDENT D'AFFICHAGE</Text>
-      <Text style={{ fontFamily: F.sans, color: C.text, fontSize: 15, textAlign: "center", maxWidth: 520 }}>{error.message}</Text>
+      <Text style={{ fontFamily: F.sans, color: C.text, fontSize: 15, textAlign: "center", maxWidth: 520 }}>{stale ? "Une nouvelle version de GEONEX vient d'être installée : la page se recharge." : error.message}</Text>
       <Text style={{ fontFamily: F.sans, color: C.muted, fontSize: 13, textAlign: "center", maxWidth: 520 }}>L'état de la partie est conservé par le serveur : réessayer recharge l'écran et resynchronise la session.</Text>
-      <Pressable onPress={retry} style={{ borderWidth: 1, borderColor: C.brass, paddingVertical: 12, paddingHorizontal: 20 }}>
+      <Pressable onPress={again} style={{ borderWidth: 1, borderColor: C.brass, paddingVertical: 12, paddingHorizontal: 20 }}>
         <Text style={{ fontFamily: F.monoBold, color: C.text, letterSpacing: 2 }}>RÉESSAYER</Text>
       </Pressable>
     </View>

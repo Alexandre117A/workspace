@@ -1,18 +1,19 @@
 import { useMemo } from "react";
 import { Image, Platform, View } from "react-native";
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Pattern, Polygon, Rect, Stop, Text as SvgText } from "react-native-svg";
-import { Delaunay } from "d3-delaunay";
 import { geoConicConformal, geoGraticule, geoMercator, geoPath } from "d3-geo";
 import { PHOTOS } from "../../content/photos";
 import { C, F } from "../../theme";
-import { PaperGrain } from "./HeroMap";
-import { arcPath, CatalogEntry, rng, useWorld, XY } from "./world";
+
+const FADE: any = Platform.OS === "web" ? { transitionProperty: "transform, opacity", transitionDuration: "500ms", transitionTimingFunction: "ease" } : {};
+import { PaperGrain } from "./PaperGrain";
+import { arcPath, CatalogEntry, useWorld, XY } from "./world";
 
 /**
  * Trois compositions illustrées, une par mode, construites à partir de données cartographiques réelles (Natural Earth) :
  *  - MODE I   « Le monde sous tension » : Eurasie contemporaine, capitales, foyers de crise du catalogue de scénarios ;
  *  - MODE II  « Les frontières du temps » : carte d'archive de la campagne de 1415 (Normandie, Picardie, Manche) ;
- *  - MODE III « Construire un monde » : table de cartographe, territoire inachevé en cours de tracé.
+ *  - MODE III « Construire un monde » : photographie réelle de la Terre de nuit (NASA).
  * Chaque carte reçoit un dégradé qui garde le texte lisible ; les compositions sont décoratives (masquées aux lecteurs d'écran).
  */
 const hidden = { accessible: false, importantForAccessibility: "no-hide-descendants" as const, pointerEvents: "none" as const };
@@ -132,47 +133,26 @@ export function HistoricalArt({ width, height, hovered }: { width: number; heigh
   );
 }
 
-const NOTES = [{ t: "Nation ?", i: 3 }, { t: "Capitale à fixer", i: 9 }, { t: "Frontière à tracer", i: 14 }, { t: "Alliance ?", i: 20 }];
-
-export function ConstructionArt({ width, height, hovered }: { width: number; height: number; hovered: boolean }) {
-  const geo = useMemo(() => {
-    const r = rng(2050);
-    const x0 = width * 0.34, x1 = width - 10, y0 = 12, y1 = height - 16;
-    const pts: [number, number][] = [];
-    const cols = 6, rows = 5;
-    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) pts.push([x0 + ((i + 0.5 + (r() - 0.5) * 0.8) / cols) * (x1 - x0), y0 + ((j + 0.5 + (r() - 0.5) * 0.8) / rows) * (y1 - y0)]);
-    const vor = Delaunay.from(pts).voronoi([x0, y0, x1, y1]);
-    const cells = pts.map((p, i) => ({ i, p, poly: (vor.cellPolygon(i) ?? []) as [number, number][], done: (i * 7) % 5 < 3 }));
-    return { cells, x0, x1, y0, y1 };
-  }, [width, height]);
-  const fills = ["#41698B", "#B89A5D", "#284D74", "#963F46", "#6C86A3"];
+/** MODE III : une vraie photographie, la Terre de nuit vue de la Station spatiale (NASA, domaine public) : des réseaux de lumière,
+ * des territoires à relier. Sobre et sérieuse, dans le ton du site ; le texte reste sur une zone sombre. */
+export function WorldBuildArt({ width, height, hovered }: { width: number; height: number; hovered: boolean }) {
+  const photo = photoFor("La Terre de nuit");
   return (
-    <View {...hidden} style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, backgroundColor: "#0E2038" }}>
+    <View {...hidden} style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, backgroundColor: "#0A1626", overflow: "hidden" }}>
+      {photo ? (
+        <Image source={photo} resizeMode="cover"
+          style={[{ position: "absolute", right: -width * 0.08, top: 0, width: width * 1.12, height, opacity: hovered ? 1 : 0.92 }, FADE,
+            Platform.OS === "web" ? ({ filter: "saturate(0.85) brightness(1.05)" } as any) : null, hovered ? { transform: [{ scale: 1.04 }] } : null]} />
+      ) : null}
       <Svg width={width} height={height}>
         <Defs>
-          <Pattern id="grid3" width="22" height="22" patternUnits="userSpaceOnUse"><Path d="M22 0 L0 0 0 22" fill="none" stroke="#284D74" strokeWidth={0.5} opacity={0.75} /></Pattern>
-          <LinearGradient id="m3fade" x1="0" y1="0" x2="1" y2="0"><Stop offset="0" stopColor="#0E2038" stopOpacity="0.97" /><Stop offset="0.42" stopColor="#0E2038" stopOpacity="0.86" /><Stop offset="1" stopColor="#0E2038" stopOpacity="0.05" /></LinearGradient>
+          <LinearGradient id="m3fade" x1="0" y1="0" x2="1" y2="0"><Stop offset="0" stopColor="#0A1626" stopOpacity="0.97" /><Stop offset="0.5" stopColor="#0A1626" stopOpacity="0.88" /><Stop offset="0.82" stopColor="#0A1626" stopOpacity="0.3" /><Stop offset="1" stopColor="#0A1626" stopOpacity="0.1" /></LinearGradient>
+          <LinearGradient id="m3tint" x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor="#10233D" stopOpacity="0.35" /><Stop offset="1" stopColor="#0B1420" stopOpacity="0.55" /></LinearGradient>
         </Defs>
-        <Rect width={width} height={height} fill="url(#grid3)" />
-        {/* Territoire inachevé : cellules remplies = zones politiques définies ; pointillés = frontières encore à tracer. */}
-        {geo.cells.map((c) => (
-          <Path key={c.i} d={`M${c.poly.map((q) => q.map((n) => n.toFixed(1)).join(",")).join(" L")} Z`} fill={c.done ? fills[c.i % fills.length] : "none"} fillOpacity={c.done ? 0.28 : 0} stroke={c.done ? "#9CC0E3" : "#6C86A3"} strokeWidth={c.done ? 1.1 : 0.8} strokeDasharray={c.done ? undefined : "4,4"} strokeLinejoin="round" />
-        ))}
-        {/* Constructions géométriques : compas, médiatrices, graduations */}
-        <Circle cx={(geo.x0 + geo.x1) / 2 + 20} cy={(geo.y0 + geo.y1) / 2} r={Math.min(width, height) * (hovered ? 0.34 : 0.3)} fill="none" stroke="#B89A5D" strokeWidth={0.8} strokeDasharray="1,5" opacity={0.8} />
-        <Line x1={geo.x0 - 8} y1={geo.y1 - 30} x2={geo.x1} y2={geo.y0 + 40} stroke="#B89A5D" strokeWidth={0.7} opacity={0.5} />
-        <Line x1={geo.x0 + 40} y1={geo.y0 - 4} x2={geo.x1 - 30} y2={geo.y1 + 4} stroke="#B89A5D" strokeWidth={0.7} opacity={0.35} />
-        {Array.from({ length: 24 }).map((_, i) => <Line key={i} x1={geo.x0 + i * ((geo.x1 - geo.x0) / 23)} x2={geo.x0 + i * ((geo.x1 - geo.x0) / 23)} y1={height - 8} y2={height - (i % 5 === 0 ? 17 : 12)} stroke="#9CC0E3" strokeWidth={0.8} opacity={0.7} />)}
-        {geo.cells.filter((c) => c.i % 6 === 1).map((c) => (
-          <G key={`m${c.i}`}><Line x1={c.p[0] - 7} x2={c.p[0] + 7} y1={c.p[1]} y2={c.p[1]} stroke="#F3F0E9" strokeWidth={1} /><Line y1={c.p[1] - 7} y2={c.p[1] + 7} x1={c.p[0]} x2={c.p[0]} stroke="#F3F0E9" strokeWidth={1} /><Circle cx={c.p[0]} cy={c.p[1]} r={2} fill="#B89A5D" /></G>
-        ))}
-        {NOTES.map((n) => {
-          const c = geo.cells[n.i];
-          if (c && c.p[0] > width - 160 && c.p[1] > height - 150) return null; // zone de l'emblème du mode
-          return c ? <SvgText key={n.t} x={c.p[0] + 6} y={c.p[1] - 7} fontSize={8.5} fontFamily={F.mono} fill="#CFE0F2" opacity={0.85}>{n.t}</SvgText> : null;
-        })}
+        <Rect width={width} height={height} fill="url(#m3tint)" />
         <Rect width={width} height={height} fill="url(#m3fade)" />
         <Rect x={0.5} y={0.5} width={width - 1} height={height - 1} fill="none" stroke="#41698B" strokeWidth={1} opacity={0.5} />
+        <SvgText x={width - 12} y={20} fontSize={8.5} fontFamily={F.mono} textAnchor="end" fill="#CFE0F2" opacity={0.6}>PHOTO · NASA / STATION SPATIALE</SvgText>
       </Svg>
     </View>
   );

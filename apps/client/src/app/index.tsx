@@ -3,7 +3,7 @@ import { Image, Linking, Platform, Pressable, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { isValidJoinCode } from "@geonex/shared";
-import { ConstructionArt, ContemporaryArt, HistoricalArt } from "../atlas/home/ModeArt";
+import { WorldBuildArt, ContemporaryArt, HistoricalArt } from "../atlas/home/ModeArt";
 import { Hero, JoinPanel } from "../atlas/home/HomeSections";
 import { ScenarioSection } from "../atlas/home/ScenarioSection";
 import { CatalogEntry, useCatalog } from "../atlas/home/world";
@@ -73,7 +73,7 @@ function ModeEntry({ mode, href, wide, entries }: { mode: ModeKey; href: string;
           {box.w > 0 ? (
             mode === "contemporary" ? <ContemporaryArt width={box.w} height={box.h} hovered={!!hovered} entries={entries} />
               : mode === "historical" ? <HistoricalArt width={box.w} height={box.h} hovered={!!hovered} />
-              : <ConstructionArt width={box.w} height={box.h} hovered={!!hovered} />
+              : <WorldBuildArt width={box.w} height={box.h} hovered={!!hovered} />
           ) : null}
           <View style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 2, backgroundColor: m.accent, opacity: 0.8 }} />
           <View style={{ flex: wide ? undefined : 1, gap: S(3), maxWidth: wide ? "78%" : "72%" }}>
