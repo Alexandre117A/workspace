@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, Platform, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Pattern, Rect, Stop } from "react-native-svg";
 import { useLayout, useReducedMotion } from "./ui";
 import { PHOTOS, Photo } from "../content/photos";
@@ -54,25 +54,31 @@ function makeColumns(cols: number): Tile[][] {
   });
 }
 
-function TileView({ t, w, h, left, top }: { t: Tile; w: number; h: number; left: number; top: number }) {
+/** Sur le web, le bord de chaque tuile s'efface réellement (masque) : elle se fond dans ses voisines au lieu de s'assombrir. */
+const FADE_MASK: any = Platform.OS === "web" ? (() => {
+  const m = "linear-gradient(to right, transparent 0%, #000 24%, #000 76%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%)";
+  return { maskImage: m, WebkitMaskImage: m, maskComposite: "intersect", WebkitMaskComposite: "source-in" };
+})() : {};
+
+function TileView({ t, w, h, left, top, uid }: { t: Tile; w: number; h: number; left: number; top: number; uid: string }) {
   // L'image est agrandie puis recadrée à un endroit différent : fondu horizontal et vertical sur les bords.
   const iw = w * t.zoom, ih = h * t.zoom;
   return (
-    <View style={{ position: "absolute", left, top, width: w, height: h, overflow: "hidden" }}>
+    <View style={[{ position: "absolute", left, top, width: w, height: h, overflow: "hidden" }, FADE_MASK]}>
       <Animated.Image source={t.src} resizeMode="cover" style={{ position: "absolute", width: iw, height: ih, left: -(iw - w) * t.fx, top: -(ih - h) * t.fy }} />
-      <Svg style={StyleSheet.absoluteFill} width={w} height={h}>
+      {Platform.OS === "web" ? null : <Svg style={StyleSheet.absoluteFill} width={w} height={h}>
         <Defs>
-          <LinearGradient id="tv" x1="0" y1="0" x2="0" y2="1">
+          <LinearGradient id={`tv${uid}`} x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor="#0A0D12" stopOpacity="0.95" /><Stop offset="0.28" stopColor="#0A0D12" stopOpacity="0" />
             <Stop offset="0.72" stopColor="#0A0D12" stopOpacity="0" /><Stop offset="1" stopColor="#0A0D12" stopOpacity="0.95" />
           </LinearGradient>
-          <LinearGradient id="th" x1="0" y1="0" x2="1" y2="0">
+          <LinearGradient id={`th${uid}`} x1="0" y1="0" x2="1" y2="0">
             <Stop offset="0" stopColor="#0A0D12" stopOpacity="0.9" /><Stop offset="0.24" stopColor="#0A0D12" stopOpacity="0" />
             <Stop offset="0.76" stopColor="#0A0D12" stopOpacity="0" /><Stop offset="1" stopColor="#0A0D12" stopOpacity="0.9" />
           </LinearGradient>
         </Defs>
-        <Rect width={w} height={h} fill="url(#th)" /><Rect width={w} height={h} fill="url(#tv)" />
-      </Svg>
+        <Rect width={w} height={h} fill={`url(#th${uid})`} /><Rect width={w} height={h} fill={`url(#tv${uid})`} />
+      </Svg>}
       {t.caption && t.label ? (
         <View style={{ position: "absolute", bottom: h * 0.2, left: w * 0.14, right: w * 0.1 }}>
           {t.year ? <Text style={{ fontFamily: F.monoBold, fontSize: 9.5, letterSpacing: 2.5, color: "#D9CDB2" }}>{t.year}</Text> : null}
@@ -123,7 +129,7 @@ export function Chronicle({ strength = 0.85 }: { strength?: number }) {
         {[0, 1].map((k) => columns.map((col, c) => col.map((t, i) => {
           // Les tuiles débordent d'un quart sur les voisines : le fondu des bords fait disparaître les frontières.
           const tw = colW * 1.5;
-          return <TileView key={`${k}-${c}-${i}`} t={t} w={tw} h={bandH} left={c * colW - colW * 0.25} top={k * T + i * step + ((c % 2) * step) / 2} />;
+          return <TileView key={`${k}-${c}-${i}`} uid={`${k}${c}${i}`} t={t} w={tw} h={bandH} left={c * colW - colW * 0.25} top={k * T + i * step + ((c % 2) * step) / 2} />;
         })))}
       </Animated.View>
       <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
@@ -141,9 +147,9 @@ export function ChronicleVeil() {
     <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
       <Defs>
         <LinearGradient id="veil" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={C.bg} stopOpacity="0.5" />
-          <Stop offset="0.4" stopColor={C.bg} stopOpacity="0.28" />
-          <Stop offset="1" stopColor={C.bg} stopOpacity="0.72" />
+          <Stop offset="0" stopColor={C.bg} stopOpacity="0.55" />
+          <Stop offset="0.4" stopColor={C.bg} stopOpacity="0.42" />
+          <Stop offset="1" stopColor={C.bg} stopOpacity="0.75" />
         </LinearGradient>
         <LinearGradient id="side" x1="0" y1="0" x2="1" y2="0">
           <Stop offset="0" stopColor={C.bg} stopOpacity="0.4" /><Stop offset="0.2" stopColor={C.bg} stopOpacity="0" />

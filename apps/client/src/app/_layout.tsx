@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Stack } from "expo-router";
+import { DarkTheme, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
@@ -10,6 +10,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Pressable, Text, View } from "react-native";
 import type { ErrorBoundaryProps } from "expo-router";
 import { AuthProvider, useAuth } from "../lib/auth";
+import { Chronicle, ChronicleVeil } from "../components/Chronicle";
+import { Wordmark } from "../components/Brand";
 import { C, F } from "../theme";
 
 /** Barrière d'erreur globale : jamais d'écran vide ; la session reprend après « Réessayer ». */
@@ -26,7 +28,21 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   );
 }
 
+/** Thème de navigation transparent : sans lui, React Navigation peint un fond uni qui masque la chronique. */
+const NAV_THEME = { ...DarkTheme, colors: { ...DarkTheme.colors, background: "transparent", card: "transparent", border: "transparent" } };
+
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
+/** Fond défilant permanent : il traverse tous les écrans et tous les chargements (jamais d'écran noir). */
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Chronicle strength={0.9} />
+      <ChronicleVeil />
+      {children}
+    </View>
+  );
+}
 
 function Root() {
   const { ready } = useAuth();
@@ -37,9 +53,9 @@ function Root() {
   useEffect(() => {
     if (fonts && ready) SplashScreen.hideAsync().catch(() => undefined);
   }, [fonts, ready]);
-  if (!fonts || !ready) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
+  if (!fonts || !ready) return <Shell><View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Wordmark size={22} /></View></Shell>;
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg }, animation: "fade", title: "GEONEX" }} />
+    <Shell><ThemeProvider value={NAV_THEME}><Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" }, animation: "fade", title: "GEONEX" }} /></ThemeProvider></Shell>
   );
 }
 

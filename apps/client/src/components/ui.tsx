@@ -6,7 +6,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, Line, Pattern, Rect } from "react-native-svg";
 import { C, F, S } from "../theme";
-import { Chronicle, ChronicleVeil } from "./Chronicle";
 
 export function useLayout() {
   const { width, height } = useWindowDimensions();
@@ -25,7 +24,7 @@ export function useReducedMotion() {
 }
 
 /** Fond commun : grille de coordonnées très fine, cadre de poste de commandement. */
-export function Backdrop({ dense = false }: { dense?: boolean }) {
+export function Backdrop({ dense = false, transparent = false }: { dense?: boolean; transparent?: boolean }) {
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Svg width="100%" height="100%">
@@ -35,7 +34,7 @@ export function Backdrop({ dense = false }: { dense?: boolean }) {
             <Line x1="0" y1="0" x2="0" y2={dense ? 32 : 64} stroke={C.line} strokeWidth={0.5} opacity={0.5} />
           </Pattern>
         </Defs>
-        <Rect width="100%" height="100%" fill={C.bg} />
+        {transparent ? null : <Rect width="100%" height="100%" fill={C.bg} />}
         <Rect width="100%" height="100%" fill="url(#grid)" />
       </Svg>
     </View>
@@ -45,9 +44,8 @@ export function Backdrop({ dense = false }: { dense?: boolean }) {
 export function Screen({ children, scroll = true, style, max = 1180, chronicle = 0.7 }: { children: ReactNode; scroll?: boolean; style?: StyleProp<ViewStyle>; max?: number; chronicle?: number }) {
   const body = <View style={[{ width: "100%", maxWidth: max, alignSelf: "center", paddingHorizontal: S(4), paddingVertical: S(5) }, style]}>{children}</View>;
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <Backdrop />
-      {chronicle > 0 ? <><Chronicle strength={chronicle} /><ChronicleVeil /></> : null}
+    <View style={{ flex: 1 }}>
+      <Backdrop transparent />
       <SafeAreaView style={{ flex: 1 }}>
         {scroll ? <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">{body}</ScrollView> : body}
       </SafeAreaView>

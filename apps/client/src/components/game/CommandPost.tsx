@@ -10,6 +10,7 @@ import { CardsPanel } from "./CardsPanel";
 import { AccessCard, RoundMark, TopBar } from "./chrome";
 import { BalancePanel, CapitalPanel, DomesticPanel } from "./panels";
 import { Situation } from "./Situation";
+import { Flag } from "../Flag";
 import { AssemblyPhase, BriefingPhase, ConsequencesPhase, DecisionsPhase, DiplomacyPhase, DossierPhase, PhaseProps, ReportBody, WaitPhase } from "./phases";
 
 type SheetKey = "capital" | "cards" | "balance" | "domestic" | "report" | "situation" | null;
@@ -65,7 +66,7 @@ export function CommandPost({ game, emit, title, voice, openDossier }: { game: a
   );
   const phaseHeader = (
     <View style={{ gap: 2, marginBottom: S(3) }}>
-      <Label color={C.muted}>{me.name} · {me.camp_label}</Label>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Flag actor={me} h={16} /><Label color={C.muted}>{me.name} · {me.camp_label}</Label></View>
       <Text style={{ fontFamily: F.title, fontSize: 28, color: C.text }}>{PHASE_LABELS[runtime.phase as keyof typeof PHASE_LABELS]}</Text>
       {view.setting.notes ? <Text onPress={() => setSheet("situation")} style={{ fontFamily: F.titleItalic, fontSize: 15, color: C.muted, lineHeight: 20 }} numberOfLines={2}>{view.setting.theatre.name} — {view.setting.notes.split(String.fromCharCode(10))[runtime.round % view.setting.notes.split(String.fromCharCode(10)).length]}</Text> : null}
       {game.report && runtime.phase !== "consequences" ? <Text onPress={() => setSheet("report")} style={{ fontFamily: F.mono, fontSize: 11, color: C.brass }}>Rapport du round {game.report.round} ›</Text> : null}

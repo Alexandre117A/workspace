@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import { Bar, Body, Label, Panel, statusLabel } from "../ui";
 import { GeoMap } from "../GeoMap";
+import { Flag } from "../Flag";
 import { useLayout } from "../ui";
 import { C, F, S } from "../../theme";
 
@@ -41,7 +42,7 @@ export function Situation({ view, scenario }: { view: any; scenario?: any }) {
             <Label color={C.steel}>{c.label}</Label>
             {c.actors.map((a: any) => (
               <View key={a.id} style={{ gap: 2, borderLeftWidth: 2, borderLeftColor: a.controlled_by === "human" ? C.brass : C.line, paddingLeft: S(3) }}>
-                <Text style={{ fontFamily: F.sansBold, color: C.text, fontSize: 14.5 }}>{a.name} <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.muted }}>{KIND[a.kind] ?? a.kind} · {a.controlled_by === "human" ? "ÉQUIPE" : "SIMULÉ"}</Text></Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Flag actor={a} h={16} /><Text style={{ fontFamily: F.sansBold, color: C.text, fontSize: 14.5 }}>{a.name} <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.muted }}>{KIND[a.kind] ?? a.kind} · {a.controlled_by === "human" ? "ÉQUIPE" : "SIMULÉ"}</Text></Text></View>
                 {a.leader ? <Body muted style={{ fontSize: 12.5 }}>Direction : {a.leader} ({statusLabel[a.leader_status] ?? a.leader_status})</Body> : null}
                 {a.description ? <Body muted style={{ fontSize: 12.5 }}>{a.description}</Body> : null}
               </View>

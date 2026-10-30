@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
 import { statusLabel } from "../ui";
+import { Flag } from "../Flag";
 import { DocLabel, DocRule, DocText, DocTitle, usePaper } from "./Envelope";
 import { F, S } from "../../theme";
 
@@ -20,7 +21,7 @@ export function DossierContent({ d }: { d: any }) {
         <DocLabel>{d.classification}</DocLabel>
         <DocLabel>{d.camp}</DocLabel>
       </View>
-      <DocTitle>{d.actor.name}</DocTitle>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}><Flag actor={d.actor} h={28} /><View style={{ flexShrink: 1 }}><DocTitle>{d.actor.name}</DocTitle></View></View>
       {d.actor.leader ? <DocText small>Direction : {d.actor.leader} <Text style={{ opacity: 0.6 }}>({statusLabel[d.actor.leader_status] ?? d.actor.leader_status})</Text></DocText> : null}
       {d.actor.description ? <DocText small>{d.actor.description}</DocText> : null}
       <DocRule />

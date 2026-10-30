@@ -63,8 +63,8 @@ def _explain(exc: Exception, service: str) -> str:
     if status == 429:
         return f"Recherche {service} limitée par le service (429) : réessayez plus tard"
     if status == 403:
-        hint = "" if os.environ.get("GEONEX_RESEARCH_CONTACT") else " — définissez GEONEX_RESEARCH_CONTACT (URL ou adresse de contact exigée par la politique User-Agent de Wikimedia)"
-        return f"Recherche {service} refusée (403){hint}"
+        # Message destiné aux joueurs : le réglage à faire côté serveur (GEONEX_RESEARCH_CONTACT) est dans docs/DEVELOPPEMENT.md.
+        return f"Recherche {service} indisponible (accès refusé) : la situation s'appuie sur les données de référence"
     return f"Recherche {service} indisponible : {exc.__class__.__name__}"
 
 

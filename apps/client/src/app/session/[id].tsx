@@ -36,7 +36,7 @@ export default function SessionScreen() {
 
   if (!user) return null;
   if (state.denied) return <Screen><Notice tone="error">{state.denied}</Notice><Btn label="Accueil" onPress={() => router.replace("/")} /></Screen>;
-  if (!state.lobby) return <View style={{ flex: 1, backgroundColor: C.bg }}><Loading label="Connexion à la session" /></View>;
+  if (!state.lobby) return <View style={{ flex: 1 }}><Loading label="Connexion à la session" /></View>;
 
   const lobby = state.lobby;
   const mode = lobby.scenario?.mode ?? "contemporary";
@@ -45,7 +45,7 @@ export default function SessionScreen() {
   const inGame = state.runtime && ["dossier", "running"].includes(state.runtime.status);
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <View style={{ flex: 1 }}>
       {!inGame ? (
         <Lobby sessionId={id} lobby={lobby} connected={state.connected} />
       ) : lobby.me.role === "president" ? (

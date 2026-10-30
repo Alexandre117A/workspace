@@ -21,7 +21,9 @@
     "test": "npm run test:engine && npm run test:api",
     "dev:client": "npm run web -w @geonex/client",
     "typecheck:client": "npm run typecheck -w @geonex/client",
-    "photos": "node scripts/engine.mjs ../../scripts/fetch-commons.py"
+    "photos": "node scripts/engine.mjs ../../scripts/fetch-commons.py",
+    "photos:nasa": "node scripts/engine.mjs ../../scripts/fetch-nasa.py",
+    "share": "node scripts/share.mjs"
   },
   "engines": {
     "node": ">=20"

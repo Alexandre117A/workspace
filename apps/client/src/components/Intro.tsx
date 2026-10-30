@@ -44,7 +44,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
   const dash = draw.interpolate({ inputRange: [0, 1], outputRange: [560, 0] });
   const spacing = word.interpolate({ inputRange: [0, 1], outputRange: [18, 10] });
   return (
-    <Animated.View style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, backgroundColor: C.bg, alignItems: "center", justifyContent: "center", opacity: out, zIndex: 50 }}>
+    <Animated.View style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, backgroundColor: "rgba(10,13,18,0.5)", alignItems: "center", justifyContent: "center", opacity: out, zIndex: 50 }}>
       <Svg width={size} height={size} viewBox="0 0 100 100">
         <ACircle cx="50" cy="50" r="44" stroke={C.brass} strokeWidth="1.6" fill="none" strokeDasharray="560" strokeDashoffset={dash as any} />
         <AEllipse cx="50" cy="50" rx="18" ry="44" stroke={C.brass} strokeWidth="0.9" fill="none" strokeDasharray="560" strokeDashoffset={dash as any} opacity={0.8} />

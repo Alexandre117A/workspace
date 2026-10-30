@@ -25,7 +25,7 @@ BALANCE_PUBLIC_ROUND = 3
 
 
 def _public_actor(world: WorldState, a) -> dict[str, Any]:
-    return {"id": a.id, "name": a.name, "short": a.short, "kind": a.kind, "iso_n3": a.iso_n3, "leader": a.leader,
+    return {"id": a.id, "name": a.name, "short": a.short, "kind": a.kind, "iso_n3": a.iso_n3, "iso_a3": a.iso_a3, "leader": a.leader,
             "leader_status": a.leader_source.status, "description": a.description, "controlled_by": a.controlled_by,
             "camp": a.camp, "camp_label": world.setting.camps.get(a.camp, a.camp),
             "regions": [r.model_dump() for r in a.regions[:6]]}

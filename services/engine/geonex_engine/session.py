@@ -71,7 +71,7 @@ def dossier(world: WorldState, actor_id: str) -> dict[str, Any]:
     ]
     return {
         "actor": {"id": a.id, "name": a.name, "kind": a.kind, "leader": a.leader, "leader_status": a.leader_source.status, "description": a.description,
-                  "iso_n3": a.iso_n3},
+                  "iso_n3": a.iso_n3, "iso_a3": a.iso_a3},
         "classification": {"contemporary": "CONFIDENTIEL — DIFFUSION RESTREINTE", "historical": "PLI SECRET", "fictional": "ACCÈS RÉSERVÉ"}[world.setting.mode],
         "era": world.setting.era,
         "objectives": [{"kind": o.kind, "text": o.text} for o in a.objectives],
