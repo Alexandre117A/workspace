@@ -8,6 +8,7 @@ import { C, F, S } from "../theme";
 import { AtlasContext, buildAtlasContext } from "./context";
 import { IndicatorsPanel, IntelligencePanel, ScenarioTimeline, useDeltas } from "./panels";
 import { MapFocus, StrategicMap } from "./StrategicMap";
+import { CommandCenter } from "./CommandCenter";
 
 /** Contexte et évolutions du round précédent, recalculés à chaque nouvelle vue du serveur. */
 export function useAtlas(view: any) {
@@ -113,7 +114,7 @@ type Pane = "decision" | "map" | "synthesis" | "data";
  * Ordinateur : trois colonnes (décision · atlas · synthèse). Tablette : atlas en haut, onglets dessous.
  * Téléphone : quatre vues (Décision, Carte, Synthèse, Données), la barre d'accès aux dossiers restant en bas.
  */
-export function TeamWorkspace({ view, ctx, previous, decision, access, notice, bottomInset = 0 }: { view: any; ctx: AtlasContext; previous?: Record<string, number>; decision: ReactNode; access: ReactNode; notice?: ReactNode; bottomInset?: number }) {
+export function TeamWorkspace({ view, ctx, previous, decision, access, notice, bottomInset = 0, runtime }: { runtime?: any; view: any; ctx: AtlasContext; previous?: Record<string, number>; decision: ReactNode; access: ReactNode; notice?: ReactNode; bottomInset?: number }) {
   const { width, height, phone, desktop } = useLayout();
   const [pane, setPane] = useState<Pane>("decision");
   const [box, setBox] = useState({ w: 0, h: 0 });
@@ -164,25 +165,6 @@ export function TeamWorkspace({ view, ctx, previous, decision, access, notice, b
     );
   }
 
-  // Ordinateur : décision · atlas · synthèse
-  const gap = S(4), total = Math.min(width, 1800);
-  const leftW = Math.round(Math.min(520, Math.max(410, total * 0.32))), rightW = Math.round(Math.min(400, Math.max(330, total * 0.26)));
-  const centerW = Math.max(460, total - leftW - rightW - gap * 4);
-  const mapH = Math.max(380, (box.h || height - 170) - 190);
-  return (
-    <View style={{ flex: 1, flexDirection: "row", gap, padding: gap, justifyContent: "center" }} onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-      <View style={{ width: leftW }}>
-        <HudFrame style={{ flex: 1 }}><ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: S(5) }}>{notice}{decision}</ScrollView></HudFrame>
-      </View>
-      <View style={{ width: centerW, gap: S(3) }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: S(3) }}>
-          <AtlasMapBlock ctx={ctx} view={view} width={centerW} height={mapH} focus={focus} />
-          <View style={{ flexDirection: "row", gap: S(3), flexWrap: "wrap" }}>{access}</View>
-        </ScrollView>
-      </View>
-      <View style={{ width: rightW }}>
-        <ScrollView showsVerticalScrollIndicator={false}><AtlasSide ctx={ctx} view={view} previous={previous} width={rightW} onFocusActor={focusActor} /></ScrollView>
-      </View>
-    </View>
-  );
+  // Ordinateur : centre de commandement (indicateurs · carte · synthèse, navigation par vues, décision en tiroir)
+  return <CommandCenter ctx={ctx} view={view} previous={previous} decision={decision} access={access} notice={notice} runtime={runtime} width={width} height={height} />;
 }

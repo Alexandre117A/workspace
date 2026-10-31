@@ -98,7 +98,7 @@ export function CommandPost({ game, emit, title, voice, openDossier }: { game: a
       <Backdrop dense />
       <SafeAreaView style={{ flex: 1 }}>
         {top}
-        <TeamWorkspace view={view} ctx={ctx} previous={previous} decision={decision} notice={reconnect}
+        <TeamWorkspace view={view} ctx={ctx} previous={previous} decision={decision} notice={reconnect} runtime={runtime}
           access={<>{a.capital}{a.cards}{a.domestic}{a.balance}<View style={{ justifyContent: "flex-end", paddingBottom: 4 }}><RoundMark round={runtime.round} /></View></>} />
       </SafeAreaView>
       {sheets}
