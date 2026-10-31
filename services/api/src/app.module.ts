@@ -1,8 +1,9 @@
-import { Controller, Get, Header, Module, NotFoundException, OnModuleInit, Param, UseGuards } from "@nestjs/common";
+import { BadRequestException, Controller, Get, Header, Module, NotFoundException, OnModuleInit, Param, Post, UseGuards } from "@nestjs/common";
 import { readFileSync } from "node:fs";
 import { DURATION_RECOMMENDATION, MIN_DURATION_MINUTES } from "@geonex/shared";
 import { ArchivesController, ArchivesService } from "./archives";
-import { AuthController, AuthGuard, AuthService, OptionalAuthGuard, OwnerGuard } from "./auth";
+import { AuthController, AuthGuard, AuthService, AuthUser, CurrentUser, OptionalAuthGuard, OwnerGuard } from "./auth";
+import { testEmail } from "./emails";
 import { config } from "./config";
 import { Db } from "./db";
 import { EngineClient } from "./engine.client";
@@ -10,6 +11,7 @@ import { GameGateway } from "./game.gateway";
 import { GameService } from "./game.service";
 import { Hub } from "./hub";
 import { LibraryController, LibraryService, ModerationController, PublicationController } from "./library";
+import { Mailer } from "./mailer";
 import { ScenariosController, ScenariosService } from "./scenarios";
 import { SessionsController, SessionsService } from "./sessions";
 import { InvitationLinkController, SpaceController, SpaceService } from "./space";
@@ -17,7 +19,7 @@ import { Store } from "./store";
 
 @Controller()
 class MetaController {
-  constructor(private readonly engine: EngineClient) {}
+  constructor(private readonly engine: EngineClient, private readonly mailer: Mailer) {}
 
   @Get("health")
   async health() {
@@ -76,6 +78,7 @@ class MetaController {
         ads: config.ads.enabled,
         demo: config.demoMode,
         preview: config.preview,
+        mail: this.mailer.configured,
       },
       stableUrl: config.preview ? config.stableUrl : null,
     };
@@ -86,7 +89,23 @@ class MetaController {
 @Controller("admin")
 @UseGuards(AuthGuard, OwnerGuard)
 class AdminController {
-  constructor(private readonly db: Db, private readonly engine: EngineClient) {}
+  constructor(private readonly db: Db, private readonly engine: EngineClient, private readonly mailer: Mailer) {}
+
+  /** État réel de l'envoi d'e-mails : fournisseur, expéditeur, problèmes de configuration, résultats récents. Aucun secret. */
+  @Get("mail")
+  async mail() {
+    const stats = await this.db.query("SELECT status, count(*) AS n FROM email_outbox WHERE created_at > now() - interval '7 days' GROUP BY status");
+    const last = await this.db.query("SELECT kind, status, error, created_at FROM email_outbox WHERE status = 'failed' ORDER BY created_at DESC LIMIT 5");
+    return { ...this.mailer.diagnose(), verify: this.mailer.configured ? await this.mailer.verify() : null, last7days: Object.fromEntries(stats.map((r) => [r.status, Number(r.n)])), recentFailures: last, requireVerified: config.requireVerified };
+  }
+
+  /** Envoie un message de test à l'adresse de l'administrateur lui-même (jamais à une adresse arbitraire : pas de relais de spam). */
+  @Post("mail/test")
+  async mailTest(@CurrentUser() user: AuthUser) {
+    if (!user.email) throw new BadRequestException("Votre compte n'a pas d'adresse e-mail.");
+    const r = await this.mailer.send({ to: user.email, kind: "test", userId: user.id, ...testEmail({ to: user.email }) });
+    return { to: user.email, ...r, diagnosis: this.mailer.diagnose() };
+  }
 
   @Get("overview")
   async overview() {
@@ -110,7 +129,7 @@ class AdminController {
 
 @Module({
   controllers: [MetaController, AdminController, AuthController, ScenariosController, SessionsController, ArchivesController, LibraryController, PublicationController, ModerationController, SpaceController, InvitationLinkController],
-  providers: [Db, Store, Hub, EngineClient, AuthService, AuthGuard, OptionalAuthGuard, OwnerGuard, ScenariosService, SessionsService, GameService, ArchivesService, GameGateway, LibraryService, SpaceService],
+  providers: [Db, Store, Hub, EngineClient, Mailer, AuthService, AuthGuard, OptionalAuthGuard, OwnerGuard, ScenariosService, SessionsService, GameService, ArchivesService, GameGateway, LibraryService, SpaceService],
 })
 export class AppModule implements OnModuleInit {
   constructor(private readonly db: Db, private readonly game: GameService) {}

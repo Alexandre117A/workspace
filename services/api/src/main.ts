@@ -6,6 +6,7 @@ import { NestFactory } from "@nestjs/core";
 import compression from "compression";
 import { AppModule } from "./app.module";
 import { config } from "./config";
+import { Mailer } from "./mailer";
 import { rateLimiter } from "./ratelimit";
 
 export async function createApp() {
@@ -50,6 +51,12 @@ if (require.main === module) {
     .then(async (app) => {
       await app.listen(config.port, "0.0.0.0");
       new Logger("GEONEX").log(`API prête sur http://localhost:${config.port}/api (moteur : ${config.engineUrl})`);
+      const mail = app.get(Mailer).diagnose();
+      const lg = new Logger("GEONEX");
+      if (mail.configured) lg.log(`E-mails : SMTP ${mail.host} — expéditeur ${mail.from}`);
+      else if (mail.provider === "smtp") lg.warn(`E-mails : configuration SMTP incomplète — ${mail.problems.join(" ")}`);
+      else if (process.env.NODE_ENV === "production") lg.warn("E-mails : aucun fournisseur configuré, aucun message ne sera envoyé (voir docs/EMAILS.md).");
+      if (config.requireVerified && !mail.configured) lg.warn("GEONEX_REQUIRE_VERIFIED est ignoré tant que l'envoi d'e-mails n'est pas opérationnel.");
       if (process.env.NODE_ENV === "production" && config.dbMode !== "postgres") {
         new Logger("GEONEX").warn("Aucune base PostgreSQL (DATABASE_URL) : les comptes et les parties seront PERDUS à chaque redémarrage du serveur.");
       }

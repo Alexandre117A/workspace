@@ -20,6 +20,7 @@
     "compression": "^1.8.2",
     "jsonwebtoken": "^9.0.2",
     "livekit-server-sdk": "^2.13.0",
+    "nodemailer": "^10.3.1",
     "pg": "^8.16.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
@@ -31,7 +32,10 @@
     "@types/compression": "^1.8.1",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.0",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.15.0",
+    "mailparser": "^3.14.1",
+    "smtp-server": "^3.21.3",
     "socket.io-client": "^4.8.1",
     "typescript": "5.9.3"
   }

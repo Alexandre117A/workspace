@@ -5,7 +5,7 @@ import {
 import { randomUUID } from "node:crypto";
 import { createSessionSchema, formatJoinCode, isValidJoinCode, joinSessionSchema, normalizeJoinCode, SOCKET_EVENTS } from "@geonex/shared";
 import { z } from "zod";
-import { AuthGuard, AuthUser, CurrentUser } from "./auth";
+import { AuthGuard, AuthService, AuthUser, CurrentUser } from "./auth";
 import { config } from "./config";
 import { Db } from "./db";
 import { EngineClient } from "./engine.client";
@@ -25,9 +25,11 @@ export class SessionsService {
     private readonly engine: EngineClient,
     private readonly hub: Hub,
     @Inject(forwardRef(() => GameService)) private readonly game: GameService,
+    private readonly auth: AuthService,
   ) {}
 
   async create(user: AuthUser, input: unknown) {
+    this.auth.assertVerified(user);
     const p = parse(createSessionSchema, input);
     const scenario = await this.db.one("SELECT * FROM scenarios WHERE id = $1", [p.scenarioId]);
     if (!scenario || scenario.owner_id !== user.id) throw new NotFoundException("Scénario introuvable.");
@@ -67,6 +69,7 @@ export class SessionsService {
   async admit(user: AuthUser, session: any, limiterKey?: string) {
     const existing = await this.store.participantForUser(session.id, user.id);
     if (existing) return { sessionId: session.id, rejoined: true };
+    this.auth.assertVerified(user);
     if (session.status === "finished" || session.status === "expired" || new Date(session.expires_at).getTime() < Date.now()) {
       throw new GoneException("Cette session est terminée ou a expiré.");
     }

@@ -6,6 +6,7 @@ import { AuthGuard, AuthUser, CurrentUser, OptionalAuthGuard, OwnerGuard } from 
 import { config } from "./config";
 import { Db } from "./db";
 import { EngineClient } from "./engine.client";
+import { Mailer } from "./mailer";
 import { AttemptLimiter, parse } from "./util";
 
 /** Fiche de la bibliothèque : une forme commune pour les fiches officielles, les scénarios communautaires publiés et les scénarios privés de l'utilisateur. */
@@ -94,7 +95,7 @@ export class LibraryService {
   private reportLimiter = new AttemptLimiter(5, 3600_000);
   private publishLimiter = new AttemptLimiter(10, 24 * 3600_000);
 
-  constructor(private readonly db: Db, private readonly engine: EngineClient) {}
+  constructor(private readonly db: Db, private readonly engine: EngineClient, private readonly mailer: Mailer) {}
 
   /** Fiches officielles : construites par le moteur à partir de scénarios réels (jamais écrites à la main). */
   async officialItems(): Promise<LibraryItem[]> {
@@ -169,6 +170,7 @@ export class LibraryService {
 
   async publish(user: AuthUser, scenarioId: string, input: unknown) {
     if (user.isGuest) throw new ForbiddenException("Créez un compte pour proposer un scénario à la bibliothèque.");
+    if (this.mailer.configured && !user.emailVerified) throw new ForbiddenException("Vérifiez votre adresse e-mail avant de publier un scénario.");
     this.publishLimiter.check(user.id);
     const p = parse(publishSchema, input);
     if ((`${p.title} ${p.description}`.match(/https?:\/\//gi) ?? []).length > 2) throw new BadRequestException("Deux liens au plus dans la présentation d'un scénario public.");

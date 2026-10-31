@@ -1,6 +1,7 @@
 -- GEONEX — plateforme : comptes vérifiés, jetons à usage unique, favoris, invitations, notifications, publication de scénarios.
 -- Migration CONSERVATRICE : aucune donnée existante n'est supprimée ni réattribuée.
 
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INT NOT NULL DEFAULT 0;   -- incrémenté pour révoquer toutes les sessions
 ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
@@ -15,6 +16,31 @@ FROM (
 ) d
 WHERE u.id = d.id AND d.rn > 1;
 CREATE UNIQUE INDEX IF NOT EXISTS users_pseudonym_unique ON users (lower(display_name)) WHERE is_guest = false AND deleted_at IS NULL;
+
+-- Jetons de vérification d'adresse, de changement d'adresse et de réinitialisation : seul l'empreinte (SHA-256) est conservée.
+CREATE TABLE IF NOT EXISTS email_tokens (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL,                 -- verify | reset | email_change
+  token_hash TEXT NOT NULL UNIQUE,
+  new_email TEXT,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS email_tokens_user ON email_tokens(user_id, kind, created_at);
+
+-- Journal des e-mails transactionnels : l'état affiché à l'utilisateur est l'état réel (envoyé, échoué, non configuré).
+CREATE TABLE IF NOT EXISTS email_outbox (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  kind TEXT NOT NULL,
+  to_email TEXT NOT NULL,
+  status TEXT NOT NULL,               -- sent | failed | skipped
+  error TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  sent_at TIMESTAMPTZ
+);
 
 -- Favoris : `scenario_key` = identifiant d'une fiche officielle (ex. cuba-1962) ou « user:<uuid> » pour un scénario communautaire publié.
 CREATE TABLE IF NOT EXISTS scenario_favorites (

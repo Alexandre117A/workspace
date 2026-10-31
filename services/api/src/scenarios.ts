@@ -2,7 +2,7 @@ import { Body, Controller, Delete, ForbiddenException, Get, Injectable, NotFound
 import { randomUUID } from "node:crypto";
 import { questionSchema, scenarioJobSchema } from "@geonex/shared";
 import { z } from "zod";
-import { AuthGuard, AuthUser, CurrentUser } from "./auth";
+import { AuthGuard, AuthService, AuthUser, CurrentUser } from "./auth";
 import { Db } from "./db";
 import { EngineClient } from "./engine.client";
 import { parse, seedFromUuid } from "./util";
@@ -28,9 +28,10 @@ export function publicScenario(row: any) {
 
 @Injectable()
 export class ScenariosService {
-  constructor(private readonly db: Db, private readonly engine: EngineClient) {}
+  constructor(private readonly db: Db, private readonly engine: EngineClient, private readonly auth: AuthService) {}
 
   async createJob(user: AuthUser, input: unknown) {
+    this.auth.assertVerified(user);
     const params = parse(scenarioJobSchema, input);
     const id = randomUUID();
     const { job_id } = await this.engine.post<{ job_id: string }>("/scenarios/jobs", { ...params, seed: seedFromUuid(id) });

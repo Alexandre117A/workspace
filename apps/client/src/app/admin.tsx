@@ -30,7 +30,7 @@ export default function Admin() {
               {data.usage.map((u: any) => <Body key={u.service}>{u.service} : {Math.round(u.units)} unité(s) · {Number(u.cost || 0).toFixed(2)} $</Body>)}
               <Body>IA : {data.ai ? `${data.ai.calls} appels · ${data.ai.cost_usd.toFixed(3)} $ (processus moteur courant)` : "indisponible"}</Body>
             </Panel>
-            
+            <MailPanel />
             <Moderation />
             <Panel title="Monétisation"><Body>Publicités : {data.monetization.ads.enabled ? "activées" : "désactivées (par défaut)"}</Body></Panel>
           </>
@@ -79,5 +79,45 @@ function Moderation() {
         ))}
       </Panel>
     </>
+  );
+}
+
+/** État réel de l'envoi d'e-mails : fournisseur, expéditeur, connexion SMTP, résultats récents, et test vers l'adresse de l'administrateur. */
+function MailPanel() {
+  const [m, setM] = useState<any>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ tone: "ok" | "warn" | "error"; text: string } | null>(null);
+  const load = () => api("/admin/mail").then(setM).catch((e) => setMsg({ tone: "error", text: e.message }));
+  useEffect(() => { load(); }, []);
+  const test = async () => {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const r = await api<any>("/admin/mail/test", { body: {} });
+      setMsg(r.status === "sent" ? { tone: "ok", text: `Message de test accepté par le fournisseur pour ${r.to}. Vérifiez la boîte de réception et les courriers indésirables.` }
+        : r.status === "failed" ? { tone: "error", text: `Échec de l'envoi (${r.error ?? "erreur"}). Voir docs/EMAILS.md.` }
+        : { tone: "warn", text: "Aucun message envoyé : aucun fournisseur SMTP n'est configuré sur ce serveur." });
+      load();
+    } catch (e: any) {
+      setMsg({ tone: "error", text: e.message });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Panel title="E-mails">
+      {!m ? <Loading /> : (
+        <>
+          <Body>Fournisseur : {m.provider === "smtp" ? "SMTP" : m.provider === "log" ? "journal (développement, rien n'est envoyé)" : "aucun"} · État : {m.configured ? (m.verify?.ok ? "opérationnel" : `configuré, connexion en échec (${m.verify?.error ?? "?"})`) : "non configuré"}</Body>
+          <Body muted>Expéditeur : {m.from ?? "—"} · Hôte : {m.host ?? "—"} · Adresse publique : {m.publicUrl}</Body>
+          <Body muted>Sur 7 jours : {m.last7days.sent ?? 0} envoyé(s), {m.last7days.failed ?? 0} échec(s), {m.last7days.skipped ?? 0} non envoyé(s) (sans fournisseur)</Body>
+          {m.problems.map((p: string) => <Notice key={p} tone="warn">{p}</Notice>)}
+          {m.requireVerified && !m.configured ? <Notice tone="warn">L'adresse vérifiée est exigée par la configuration, mais la règle reste inactive tant que l'envoi d'e-mails ne fonctionne pas.</Notice> : null}
+          {m.recentFailures.map((f: any, i: number) => <Body key={i} muted>Échec récent : {f.kind} · {f.error}</Body>)}
+          {msg ? <Notice tone={msg.tone}>{msg.text}</Notice> : null}
+          <Btn small label="ENVOYER UN E-MAIL DE TEST À MON ADRESSE" busy={busy} onPress={test} />
+        </>
+      )}
+    </Panel>
   );
 }
