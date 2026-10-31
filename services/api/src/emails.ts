@@ -102,6 +102,17 @@ export function resetEmail(p: { pseudonym: string; resetUrl: string }): Rendered
   });
 }
 
+/** Message de test de la configuration d'envoi (page d'administration et script `npm run mail:test`). */
+export function testEmail(p: { to: string }): Rendered {
+  return build("GEONEX — Test d'envoi d'e-mails", {
+    preheader: "Si vous lisez ce message, l'envoi d'e-mails de GEONEX fonctionne.",
+    title: "L'envoi d'e-mails fonctionne.",
+    paragraphs: [`Ce message a été envoyé à ${p.to} pour vérifier la configuration de GEONEX : fournisseur, expéditeur et adresse publique.`, "Vérifiez qu'il n'est pas arrivé dans les courriers indésirables, et que l'expéditeur affiché est bien le vôtre."],
+    cta: { label: "OUVRIR GEONEX", url: config.publicUrl },
+    note: "Message technique, sans action à effectuer.",
+  });
+}
+
 export function inviteEmail(p: { from: string; session: string; url: string }): Rendered {
   return build(`${p.from} vous invite à rejoindre une simulation GEONEX`, {
     preheader: `${p.from} vous invite à participer à « ${p.session} ».`,

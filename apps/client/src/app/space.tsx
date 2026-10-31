@@ -289,7 +289,7 @@ export default function Space() {
       default: return (
         <View style={{ gap: S(5) }}>
           {me?.isGuest ? <Notice tone="warn">Vous utilisez un profil invité temporaire. <Text onPress={() => router.push("/auth?mode=register")} style={{ textDecorationLine: "underline" }}>Créez un compte gratuit</Text> pour conserver vos simulations, favoris et invitations.</Notice> : null}
-          {me && !me.isGuest && !me.emailVerified ? <Notice tone="warn">Votre adresse e-mail n'est pas encore vérifiée. <Text onPress={() => setTab("profile")} style={{ textDecorationLine: "underline" }}>Voir mon profil</Text></Notice> : null}
+          {me && !me.isGuest && !me.emailVerified ? <Notice tone="warn">{me.requireVerified ? "Confirmez votre adresse e-mail pour lancer ou rejoindre une simulation. " : "Votre adresse e-mail n'est pas encore vérifiée. "}<Text onPress={() => setTab("profile")} style={{ textDecorationLine: "underline" }}>Voir mon profil</Text></Notice> : null}
           {pending.length ? <Card accent={C.brass}><H sub={`${pending.length} invitation${pending.length > 1 ? "s" : ""} en attente`}>Invitations</H>{pending.slice(0, 2).map((i: any) => <View key={i.id} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: S(3), flexWrap: "wrap" }}><Text style={{ fontFamily: F.sans, fontSize: 14, color: C.text, flex: 1 }}>{i.from} vous invite à « {i.session.name} »</Text><Btn small label="VOIR" onPress={() => setTab("invitations")} /></View>)}</Card> : null}
           <View style={{ gap: S(3) }}>
             <H sub="Vos sessions actives, organisées ou rejointes.">Sessions en cours</H>

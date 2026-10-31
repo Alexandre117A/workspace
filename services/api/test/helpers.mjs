@@ -18,7 +18,7 @@ function pythonPath() {
     .find((p) => existsSync(p));
 }
 
-export async function startStack({ timeScale = 0.05, owners = "" } = {}) {
+export async function startStack({ timeScale = 0.05, owners = "", env = {} } = {}) {
   const enginePort = 8190 + Math.floor(Math.random() * 400);
   const python = pythonPath();
   if (!python) throw new Error("Interpréteur Python du moteur introuvable (npm run setup:engine)");
@@ -37,7 +37,7 @@ export async function startStack({ timeScale = 0.05, owners = "" } = {}) {
   Object.assign(process.env, {
     GEONEX_DB: process.env.GEONEX_TEST_DATABASE_URL ? "postgres" : "memory", GEONEX_RATE_LIMIT: "off", ...(process.env.GEONEX_TEST_DATABASE_URL ? { DATABASE_URL: process.env.GEONEX_TEST_DATABASE_URL } : {}),
     GEONEX_ENGINE_URL: engineUrl, GEONEX_ENGINE_TOKEN: "test-token", GEONEX_TIME_SCALE: String(timeScale),
-    GEONEX_JWT_SECRET: "test-secret-0123456789", GEONEX_OWNER_EMAILS: owners, GEONEX_QUIET: "1", GEONEX_MAIL_PROVIDER: "log",
+    GEONEX_JWT_SECRET: "test-secret-0123456789", GEONEX_OWNER_EMAILS: owners, GEONEX_QUIET: "1", GEONEX_MAIL_PROVIDER: "log", ...env,
   });
   const { createApp } = require(join(root, "services", "api", "dist", "main.js"));
   const app = await createApp();

@@ -12,7 +12,35 @@ export interface Mail {
   userId?: string | null;
 }
 export type MailStatus = "sent" | "failed" | "skipped";
-export interface MailResult { status: MailStatus; configured: boolean }
+export interface MailResult { status: MailStatus; configured: boolean; error?: string }
+
+const FROM_RE = /^(?:[^<>@]*<\s*)?[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+\s*>?$/;
+
+/** Ce qui manque (ou est incohérent) dans la configuration d'envoi, en clair. Aucun secret n'est jamais renvoyé. */
+export function mailDiagnosis() {
+  const m = config.mail;
+  const problems: string[] = [];
+  let host = m.host;
+  if (m.smtpUrl) { try { host = new URL(m.smtpUrl).host; } catch { problems.push("SMTP_URL n'est pas une adresse valide (ex. smtp://identifiant:cle@hote:587)."); } }
+  if (m.provider === "smtp") {
+    if (!m.smtpUrl && !m.host) problems.push("Aucun serveur SMTP : définissez SMTP_URL, ou SMTP_HOST (avec SMTP_PORT, SMTP_USER, SMTP_PASS).");
+    if (!m.from) problems.push("GEONEX_MAIL_FROM est vide : indiquez l'expéditeur, ex. GEONEX <no-reply@votre-domaine>.");
+    else if (!FROM_RE.test(m.from)) problems.push("GEONEX_MAIL_FROM n'est pas une adresse valide (ex. GEONEX <no-reply@votre-domaine>).");
+    if (!/^https:\/\//.test(config.publicUrl) && process.env.NODE_ENV === "production") problems.push("GEONEX_PUBLIC_URL devrait être l'adresse https publique du service : les liens des e-mails en dépendent.");
+  }
+  const configured = m.provider === "smtp" && !problems.some((p) => !p.startsWith("GEONEX_PUBLIC_URL"));
+  return { provider: m.provider, configured, from: m.from || null, host: host || null, publicUrl: config.publicUrl, problems };
+}
+
+/** Transport SMTP (délais courts : un fournisseur injoignable ne doit jamais bloquer une inscription plus de quelques secondes). */
+export function smtpTransport() {
+  const nodemailer = require("nodemailer");
+  const m = config.mail;
+  const timeouts = { connectionTimeout: 10_000, greetingTimeout: 10_000, socketTimeout: 20_000 };
+  return nodemailer.createTransport(m.smtpUrl
+    ? { url: m.smtpUrl, ...timeouts }
+    : { host: m.host, port: m.port, secure: m.secure, auth: m.user ? { user: m.user, pass: m.pass } : undefined, ...timeouts });
+}
 
 /**
  * Envoi des e-mails transactionnels. Trois états honnêtes, toujours consignés dans `email_outbox` :
@@ -28,6 +56,7 @@ export class Mailer {
   private transport: any = null;
   /** Derniers messages (fournisseur « log » seulement) : sert aux tests et au développement. */
   readonly captured: Mail[] = [];
+  private failures = 0;
 
   constructor(private readonly db: Db) {}
 
@@ -36,16 +65,29 @@ export class Mailer {
   }
 
   get configured(): boolean {
-    return config.mail.provider === "smtp" && !!config.mail.from && !!(config.mail.smtpUrl || config.mail.host);
+    return mailDiagnosis().configured;
   }
 
-  private smtp() {
-    if (!this.transport) {
-      const nodemailer = require("nodemailer");
-      const m = config.mail;
-      this.transport = nodemailer.createTransport(m.smtpUrl || { host: m.host, port: m.port, secure: m.secure, auth: m.user ? { user: m.user, pass: m.pass } : undefined });
+  /** Faux après trois échecs d'envoi consécutifs : les règles qui dépendent des e-mails (adresse vérifiée exigée) se suspendent alors d'elles-mêmes. */
+  get healthy(): boolean {
+    return this.failures < 3;
+  }
+
+  diagnose() {
+    return { ...mailDiagnosis(), healthy: this.healthy, consecutiveFailures: this.failures };
+  }
+
+  /** Poignée de main SMTP avec authentification, sans envoyer de message : confirme que l'hôte, le port et les identifiants sont bons. */
+  async verify(): Promise<{ ok: boolean; error?: string }> {
+    if (!this.configured) return { ok: false, error: "Aucun fournisseur SMTP configuré." };
+    try {
+      this.transport ??= smtpTransport();
+      await this.transport.verify();
+      this.failures = 0;
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: String(err?.code ?? err?.message ?? "erreur").slice(0, 200) };
     }
-    return this.transport;
   }
 
   async send(mail: Mail): Promise<MailResult> {
@@ -65,13 +107,22 @@ export class Mailer {
       return { status: "skipped", configured: false };
     }
     try {
-      await this.smtp().sendMail({ from: config.mail.from, to: mail.to, subject: mail.subject, html: mail.html, text: mail.text });
+      this.transport ??= smtpTransport();
+      await this.transport.sendMail({
+        from: config.mail.from, to: mail.to, subject: mail.subject, html: mail.html, text: mail.text,
+        ...(config.mail.replyTo ? { replyTo: config.mail.replyTo } : {}),
+        headers: { "Auto-Submitted": "auto-generated", "X-Auto-Response-Suppress": "All" }, // message transactionnel : pas de réponse automatique en boucle
+      });
+      this.failures = 0;
       await record("sent");
       return { status: "sent", configured: true };
     } catch (err: any) {
-      this.log.warn(`Échec d'envoi (${mail.kind}) : ${err?.code ?? err?.message ?? err}`);
-      await record("failed", String(err?.code ?? err?.message ?? "erreur").slice(0, 200));
-      return { status: "failed", configured: true };
+      const code = String(err?.code ?? err?.message ?? "erreur").slice(0, 200);
+      this.log.warn(`Échec d'envoi (${mail.kind}) : ${code}`);
+      this.failures++;
+      this.transport = null; // connexion peut-être périmée : on la recrée au prochain envoi
+      await record("failed", code);
+      return { status: "failed", configured: true, error: code };
     }
   }
 }

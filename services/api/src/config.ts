@@ -42,6 +42,7 @@ export const config = {
     /** `smtp` (SMTP_URL ou SMTP_HOST/PORT/USER/PASS), `log` (développement : le message est écrit dans le journal du serveur), sinon aucun envoi. */
     provider: (process.env.GEONEX_MAIL_PROVIDER ?? (process.env.SMTP_URL || process.env.SMTP_HOST ? "smtp" : "none")).toLowerCase(),
     from: process.env.GEONEX_MAIL_FROM ?? "",
+    replyTo: process.env.GEONEX_MAIL_REPLY_TO ?? "",
     smtpUrl: process.env.SMTP_URL ?? "",
     host: process.env.SMTP_HOST ?? "",
     port: Number(process.env.SMTP_PORT ?? 587),

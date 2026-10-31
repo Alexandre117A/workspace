@@ -75,6 +75,18 @@ export class AuthService {
     return { id: row.id, role: row.role === "owner" ? "owner" : "user", displayName: row.display_name, isGuest: !!row.is_guest, email: row.email, emailVerified: !!row.email_verified_at, tokenVersion: Number(row.token_version) };
   }
 
+  /** La règle « adresse vérifiée exigée » n'est appliquée que si les e-mails sont opérationnels (configurés et sans série d'échecs) : sinon personne ne pourrait la remplir. */
+  mustVerify(): boolean {
+    return config.requireVerified && this.mailer.configured && this.mailer.healthy;
+  }
+
+  /** Refuse l'accès aux parties (création, admission) tant que l'adresse n'est pas vérifiée, quand la règle est active. */
+  assertVerified(user: AuthUser): void {
+    if (this.mustVerify() && !user.emailVerified) {
+      throw new ForbiddenException("Confirmez votre adresse e-mail pour continuer : ouvrez le lien reçu à l'inscription, ou demandez-en un nouveau depuis Mon espace, onglet Mon profil.");
+    }
+  }
+
   /** Droits d'administration : adresse listée dans GEONEX_OWNER_EMAILS ET vérifiée (si l'envoi d'e-mails est opérationnel). Jamais le pseudonyme. */
   private roleFor(email: string | null, verified: boolean): "user" | "owner" {
     if (!email || !config.ownerEmails.includes(email.toLowerCase())) return "user";
@@ -173,7 +185,7 @@ export class AuthService {
       id: row.id, email: row.email, displayName: row.display_name, role: row.role, isGuest: row.is_guest, createdAt: row.created_at,
       emailVerified: !!row.email_verified_at, avatarColor: AVATARS.includes(prefs.avatarColor) ? prefs.avatarColor : "navy",
       notifications: { invitations: prefs.notifications?.invitations !== false, product: prefs.notifications?.product === true }, discoverable: prefs.discoverable !== false,
-      mail: { configured: this.mailer.configured }, requireVerified: config.requireVerified,
+      mail: { configured: this.mailer.configured }, requireVerified: this.mustVerify(),
     };
   }
 

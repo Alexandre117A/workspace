@@ -18,7 +18,7 @@ Mis à jour le 30 octobre 2026 (branche `v2`). Ce document décrit ce qui existe
 | Documentation (30 articles, recherche) et méthodologie | `/docs`, `/methodology` | vérification en navigateur |
 
 ## Ce qui demande une configuration de votre part
-**L'envoi réel d'e-mails.** Sans fournisseur, GEONEX fonctionne mais n'envoie rien, et **le dit clairement** : après l'inscription l'écran affiche « l'envoi d'e-mails n'est pas encore activé sur ce serveur : aucun message n'a été envoyé ». Aucun e-mail n'a été envoyé pendant les tests (fournisseur de développement « log » : le message est écrit dans le journal du serveur).
+**L'envoi réel d'e-mails** (guide complet : `docs/EMAILS.md`, contrôle : `npm run mail:test`, panneau « E-mails » de l'administration). Sans fournisseur, GEONEX fonctionne mais n'envoie rien, et **le dit clairement** : après l'inscription l'écran affiche « l'envoi d'e-mails n'est pas encore activé sur ce serveur : aucun message n'a été envoyé ». Aucun e-mail n'a été envoyé pendant les tests (fournisseur de développement « log » : le message est écrit dans le journal du serveur).
 
 Variables d'environnement du serveur (Render → Environment) :
 
@@ -28,7 +28,8 @@ Variables d'environnement du serveur (Render → Environment) :
 | `SMTP_URL` ou `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` | accès au serveur d'envoi (fournisseur SMTP transactionnel) ; ne jamais les mettre dans le code |
 | `GEONEX_MAIL_FROM` | expéditeur, ex. `GEONEX <no-reply@votre-domaine>` ; **doit appartenir à un domaine (ou une adresse) que vous avez validé chez le fournisseur** |
 | `GEONEX_MAIL_PROVIDER` | `smtp` (déduit si SMTP configuré), `log` (développement), sinon aucun envoi |
-| `GEONEX_REQUIRE_VERIFIED` | `true` pour exiger l'adresse vérifiée (à n'activer qu'une fois les e-mails opérationnels) |
+| `GEONEX_REQUIRE_VERIFIED` | `true` pour exiger l'adresse vérifiée avant de créer ou rejoindre une simulation (appliquée seulement si les e-mails fonctionnent ; voir `docs/EMAILS.md`) |
+| `GEONEX_MAIL_REPLY_TO` | facultatif : adresse de réponse aux e-mails |
 | `GEONEX_MODERATION` | `on` (défaut) : un administrateur relit les scénarios proposés ; `off` : publication immédiate |
 | `GEONEX_OWNER_EMAILS` | adresses des administrateurs (jamais un pseudonyme). Le rôle n'est accordé qu'à une adresse **vérifiée** quand l'envoi d'e-mails est actif |
 
@@ -54,7 +55,7 @@ Les articles de documentation et la page de méthodologie sont **dans le code** 
 Seuls des états réels du moteur : en préparation (salon d'attente), session active, terminée, expirée, et « archivée » (masquée par l'organisateur). Il n'existe pas de « brouillon » : le scénario préparé est enregistré dans « Mes scénarios ».
 
 ## Limites connues
-- Aucun e-mail réel n'a été envoyé : la chaîne SMTP est écrite mais non éprouvée avec un vrai fournisseur.
+- Aucun e-mail réel n'a été envoyé : la chaîne SMTP est éprouvée contre un serveur SMTP local (test automatique), pas avec un vrai fournisseur.
 - Pas de téléversement d'avatar (monogramme coloré), pas de filtre « durée » ni « nombre de joueurs » : toutes les fiches acceptent 1 à 16 équipes et la durée se choisit au lancement, donc ces filtres ne distingueraient rien. Le filtre « complexité » repose sur une règle documentée (nombre d'acteurs).
 - Pas de modération automatique de contenu : la relecture humaine est la seule protection ; les liens sont limités à deux par présentation.
 - Pas de connexion Apple/Google, pas de double authentification.

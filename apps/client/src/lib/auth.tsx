@@ -15,6 +15,7 @@ export interface User {
   notifications?: { invitations: boolean; product: boolean };
   discoverable?: boolean;
   mail?: { configured: boolean };
+  requireVerified?: boolean;
 }
 
 export interface RegisterInput { email: string; pseudonym: string; password: string; passwordConfirm: string; acceptTerms: true }
