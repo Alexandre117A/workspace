@@ -29,10 +29,11 @@ export function TopBar({ title, runtime, offset, simTime, connected, right, stri
         <View style={{ flexDirection: "row", gap: S(3), alignItems: "center" }}>
           {total !== null && !phone ? <Label color={C.faint}>Fin ≈ {fmtClock(total)}</Label> : null}
           <View accessibilityLabel={connected ? "Connecté" : "Reconnexion"} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Led color={connected ? C.green : C.red} />{!phone ? <Text style={{ fontFamily: F.monoBold, fontSize: 9.5, letterSpacing: 1.6, color: connected ? C.green : C.red }}>{connected ? "LIVE" : "SYNC…"}</Text> : null}</View>
-          {right}
+          {!phone ? right : null}
         </View>
       </View>
     </View>
+    {phone && right ? <View style={{ flexDirection: "row", justifyContent: "flex-end", alignItems: "center", gap: S(4), paddingHorizontal: S(4), paddingVertical: 4, backgroundColor: "#07111FF2", borderBottomWidth: 1, borderBottomColor: `${TECH}33` }}>{right}</View> : null}
     {strip}
     </View>
   );

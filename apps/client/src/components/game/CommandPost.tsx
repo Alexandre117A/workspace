@@ -60,7 +60,7 @@ export function CommandPost({ game, emit, title, voice, openDossier }: { game: a
   );
   const top = (
     <TopBar title={title} runtime={runtime} offset={offset} simTime={view.sim_time} connected={game.connected} strip={<ContextStrip ctx={ctx} runtime={runtime} />}
-      right={<View style={{ flexDirection: "row", gap: 12 }}><Text onPress={() => setSheet("situation")} style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 1.6, color: C.steel }}>SITUATION</Text><Text onPress={openDossier} style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 1.6, color: C.brass }}>DOSSIER</Text></View>} />
+      right={<View style={{ flexDirection: "row", gap: 12 }}><Text onPress={() => setSheet("situation")} style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 1.6, color: C.steel, paddingVertical: 8 }}>SITUATION</Text><Text onPress={openDossier} style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 1.6, color: C.brass, paddingVertical: 8 }}>DOSSIER</Text></View>} />
   );
   const phaseHeader = (
     <View style={{ gap: 2, marginBottom: S(3) }}>
