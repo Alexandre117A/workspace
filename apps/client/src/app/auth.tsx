@@ -33,7 +33,7 @@ export default function Auth() {
 
   useEffect(() => { setError(null); setTouched(false); }, [mode]);
   useEffect(() => {
-    if (auth.ready && auth.user && !auth.user.isGuest && !busy) router.replace((next as any) ?? "/space");
+    if (auth.ready && auth.user && !auth.user.isGuest && !busy) router.replace((next as any) ?? "/");
   }, [auth.ready, auth.user?.id]);
 
   // Disponibilité du pseudonyme, vérifiée au fil de la saisie (le pseudonyme est une identité publique, pas un secret).
@@ -75,7 +75,7 @@ export default function Auth() {
     try {
       if (mode === "login") {
         await auth.login(email.trim().toLowerCase(), password, remember);
-        router.replace((next as any) ?? "/space");
+        router.replace((next as any) ?? "/");
       } else if (mode === "guest") {
         await auth.guest(pseudonym.trim());
         router.replace((next as any) ?? "/");

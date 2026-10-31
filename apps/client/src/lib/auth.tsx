@@ -67,11 +67,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const t = await loadToken();
       if (t) {
         setToken(t);
-        try {
-          setUser(await api<User>("/auth/me"));
-        } catch {
-          setToken(null);
-          await clearToken();
+        // Le jeton n'est effacé que si le serveur le refuse (401). Un serveur qui se réveille ou une coupure réseau ne doivent jamais
+        // déconnecter : on réessaie jusqu'à environ 90 s (réveil d'un hébergement gratuit) en gardant le jeton.
+        for (let attempt = 0; attempt < 30; attempt++) {
+          try {
+            setUser(await api<User>("/auth/me"));
+            break;
+          } catch (e: any) {
+            if (e?.status === 401 || e?.status === 403) {
+              setToken(null);
+              await clearToken();
+              break;
+            }
+            await new Promise((r) => setTimeout(r, 3000));
+          }
         }
       }
       setReady(true);

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { DarkTheme, Redirect, Stack, ThemeProvider, usePathname } from "expo-router";
+import { DarkTheme, Stack, ThemeProvider, usePathname, useRootNavigationState, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
@@ -61,6 +61,14 @@ const PUBLIC = ["/auth", "/welcome", "/terms", "/privacy", "/forgot", "/reset", 
 function Root() {
   const { ready, user } = useAuth();
   const path = usePathname();
+  const router = useRouter();
+  const navKey = useRootNavigationState()?.key;
+  const needsAuth = ready && (!user || user.isGuest) && !PUBLIC.some((p) => path === p || path.startsWith(p + "/"));
+  useEffect(() => {
+    if (!navKey || !needsAuth) return;
+    const next = path && path !== "/" ? `&next=${encodeURIComponent(path)}` : "";
+    router.replace(`/auth?mode=register${next}` as any);
+  }, [navKey, needsAuth, path, router]);
   const [fonts] = useFonts({
     CormorantGaramond_400Regular, CormorantGaramond_500Medium_Italic, CormorantGaramond_600SemiBold,
     IBMPlexSans_400Regular, IBMPlexSans_500Medium, IBMPlexSans_600SemiBold, IBMPlexMono_400Regular, IBMPlexMono_600SemiBold,
@@ -69,12 +77,10 @@ function Root() {
     if (fonts && ready) SplashScreen.hideAsync().catch(() => undefined);
   }, [fonts, ready]);
   if (!fonts || !ready) return <Shell><View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Wordmark size={22} /></View></Shell>;
-  if ((!user || user.isGuest) && !PUBLIC.some((p) => path === p || path.startsWith(p + "/"))) {
-    const next = path && path !== "/" ? `&next=${encodeURIComponent(path)}` : "";
-    return <Redirect href={`/auth?mode=register${next}` as any} />;
-  }
   return (
-    <Shell><ThemeProvider value={NAV_THEME}><Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" }, animation: "fade", title: "GEONEX" }} /></ThemeProvider></Shell>
+    <Shell><ThemeProvider value={NAV_THEME}><Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" }, animation: "fade", title: "GEONEX" }} /></ThemeProvider>
+      {needsAuth ? <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" }}><Wordmark size={22} /></View> : null}
+    </Shell>
   );
 }
 

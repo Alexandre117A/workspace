@@ -13,7 +13,7 @@ export default function Welcome() {
   const [state, setState] = useState<string>(typeof status === "string" ? status : "skipped");
   const [busy, setBusy] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
-  const go = typeof next === "string" && next.startsWith("/") ? next : "/space";
+  const go = typeof next === "string" && next.startsWith("/") ? next : "/";
 
   const resend = async () => {
     setBusy(true);
