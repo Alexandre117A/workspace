@@ -255,8 +255,8 @@ function DecideButton({ onPress, waiting, open }: { onPress: () => void; waiting
 }
 
 /** Disposition « centre de commandement » pour grand écran. */
-export function CommandCenter({ ctx, view, previous, decision, access, notice, runtime, width, height }: {
-  ctx: AtlasContext; view: any; previous?: Record<string, number>; decision: ReactNode; access: ReactNode; notice?: ReactNode; runtime: any; width: number; height: number;
+export function CommandCenter({ ctx, view, previous, decision, access, notice, runtime, width, height, stack = false }: {
+  stack?: boolean; ctx: AtlasContext; view: any; previous?: Record<string, number>; decision: ReactNode; access: ReactNode; notice?: ReactNode; runtime: any; width: number; height: number;
 }) {
   const [viewKey, setViewKey] = useState<ViewKey>("overview");
   const [drawer, setDrawer] = useState(false);
@@ -270,13 +270,47 @@ export function CommandCenter({ ctx, view, previous, decision, access, notice, r
     }
   }, [phase]);
 
+  const focusActor = (id: string) => setFocus({ type: "actor", id, n: Date.now() });
+  const drawerBox = (w: number | string, inset: number) => (
+    <HudFrame color={C.brass} style={{ position: "absolute", top: inset, bottom: inset, right: inset, width: w as any, backgroundColor: "#091525F9", zIndex: 5 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: S(4), paddingVertical: S(3), borderBottomWidth: 1, borderBottomColor: `${C.brass}55` }}>
+        <Led color={C.brass} size={7} />
+        <Text style={{ flex: 1, fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 2, color: C.brass, textTransform: "uppercase" }}>Espace de décision</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Fermer l'espace de décision" onPress={() => setDrawer(false)} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: `${C.brass}66` }}><Text style={{ color: C.brass, fontSize: 18 }}>×</Text></Pressable>
+      </View>
+      <ScrollView contentContainerStyle={{ padding: S(5) }}>{decision}</ScrollView>
+      <Brackets color={C.brass} />
+    </HudFrame>
+  );
+  if (stack) {
+    const w = Math.min(width - S(8), 980);
+    return (
+      <View style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ padding: S(4), gap: S(4), alignItems: "center", paddingBottom: S(6) }}>
+          <View style={{ width: w, gap: S(4) }}>
+            {notice}
+            <AtlasMapBlock ctx={ctx} view={view} width={w} height={Math.round(Math.min(440, height * 0.42))} compact={viewKey !== "overview"} focus={focus} />
+            {viewKey === "overview" ? (
+              <>
+                <View style={{ flexDirection: "row", gap: S(3), flexWrap: "wrap" }}>{access}</View>
+                <LeftColumn ctx={ctx} view={view} previous={previous} width={w} />
+                <IntelligencePanel ctx={ctx} view={view} previous={previous} onFocusActor={focusActor} />
+              </>
+            ) : <ViewContent viewKey={viewKey} ctx={ctx} view={view} previous={previous} width={w} onFocusActor={focusActor} />}
+          </View>
+        </ScrollView>
+        <BottomNav viewKey={viewKey} setView={setViewKey} onDecide={() => setDrawer((d) => !d)} waiting={!!phase && ACTION_PHASES.includes(phase)} open={drawer} />
+        {drawer ? drawerBox("96%", S(2)) : null}
+      </View>
+    );
+  }
+
   const gap = S(4), total = Math.min(width, 1800);
   const leftW = Math.round(Math.min(400, Math.max(320, total * 0.22)));
   const rightW = Math.round(Math.min(420, Math.max(340, total * 0.24)));
   const centerW = Math.max(460, total - leftW - rightW - gap * 4);
   const bodyH = Math.max(420, height - 76);
   const mapH = viewKey === "overview" ? Math.max(380, bodyH - 150) : 280;
-  const focusActor = (id: string) => setFocus({ type: "actor", id, n: Date.now() });
   const drawerW = Math.min(520, Math.round(total * 0.34));
 
   return (
@@ -294,17 +328,7 @@ export function CommandCenter({ ctx, view, previous, decision, access, notice, r
         <View style={{ width: rightW }}>
           <ScrollView showsVerticalScrollIndicator={false}><IntelligencePanel ctx={ctx} view={view} previous={previous} onFocusActor={focusActor} /></ScrollView>
         </View>
-        {drawer ? (
-          <HudFrame color={C.brass} style={{ position: "absolute", top: gap, bottom: gap, right: gap, width: drawerW, backgroundColor: "#091525F7", zIndex: 5 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: S(4), paddingVertical: S(3), borderBottomWidth: 1, borderBottomColor: `${C.brass}55` }}>
-              <Led color={C.brass} size={7} />
-              <Text style={{ flex: 1, fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 2, color: C.brass, textTransform: "uppercase" }}>Espace de décision</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Fermer l'espace de décision" onPress={() => setDrawer(false)} style={{ width: 36, height: 36, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: `${C.brass}66` }}><Text style={{ color: C.brass, fontSize: 18 }}>×</Text></Pressable>
-            </View>
-            <ScrollView contentContainerStyle={{ padding: S(5) }}>{decision}</ScrollView>
-            <Brackets color={C.brass} />
-          </HudFrame>
-        ) : null}
+        {drawer ? drawerBox(drawerW, gap) : null}
       </View>
       <BottomNav viewKey={viewKey} setView={setViewKey} onDecide={() => setDrawer((d) => !d)} waiting={!!phase && ACTION_PHASES.includes(phase)} open={drawer} />
     </View>

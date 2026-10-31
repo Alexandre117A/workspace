@@ -146,23 +146,7 @@ export function TeamWorkspace({ view, ctx, previous, decision, access, notice, b
   }
 
   if (!desktop) {
-    const w = Math.min(width - S(8), 980);
-    const t = pane === "map" ? "decision" : pane;
-    return (
-      <ScrollView contentContainerStyle={{ padding: S(4), gap: S(4), alignItems: "center", paddingBottom: S(6) }}>
-        <View style={{ width: w, gap: S(4) }}>
-          {notice}
-          <AtlasMapBlock ctx={ctx} view={view} width={w} height={Math.round(Math.min(420, height * 0.4))} focus={focus} />
-          <View accessibilityRole="tablist" style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: C.lineHi }}>
-            {tab("decision", "Décision")}{tab("synthesis", "Synthèse")}{tab("data", "Données")}
-          </View>
-          {t === "decision" ? <HudFrame style={{ padding: S(5) }}>{decision}</HudFrame> : null}
-          {t === "synthesis" ? <IntelligencePanel ctx={ctx} view={view} previous={previous} onFocusActor={focusActor} /> : null}
-          {t === "data" ? <IndicatorsPanel ctx={ctx} view={view} previous={previous} width={w} /> : null}
-          <View style={{ flexDirection: "row", gap: S(3), flexWrap: "wrap" }}>{access}</View>
-        </View>
-      </ScrollView>
-    );
+    return <CommandCenter stack ctx={ctx} view={view} previous={previous} decision={decision} access={access} notice={notice} runtime={runtime} width={width} height={height} />;
   }
 
   // Ordinateur : centre de commandement (indicateurs · carte · synthèse, navigation par vues, décision en tiroir)

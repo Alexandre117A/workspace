@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { PHASE_LABELS } from "@geonex/shared";
 import { Body, Btn, Chip, Field, Label, Notice, Stepper, useLayout } from "../ui";
 import { Backdrop, Bar, Panel, Sheet } from "./hud";
-import { AtlasBoard, ContextStrip, useAtlas } from "../../atlas/AtlasWorkspace";
+import { AtlasBoard, AtlasMapBlock, AtlasSide, ContextStrip, useAtlas } from "../../atlas/AtlasWorkspace";
 import { Ack, fmtClock, remaining, useNow } from "../../lib/game";
 import { C, F, S } from "../../theme";
 import { RoundMark, TopBar } from "./chrome";
@@ -197,6 +197,34 @@ export function PresidentPost({ game, emit, title }: { game: any; emit: (e: stri
       <Backdrop dense />
       <SafeAreaView style={{ flex: 1 }}>
         <TopBar title={`${title} · Présidence`} runtime={runtime} offset={offset} simTime={view.sim_time} connected={game.connected} strip={ctx ? <ContextStrip ctx={ctx} runtime={runtime} /> : null} />
+        {desktop && ctx ? (() => {
+          const gap = S(4), total = Math.min(width, 1800);
+          const leftW = Math.round(Math.min(420, Math.max(340, total * 0.23))), rightW = Math.round(Math.min(420, Math.max(340, total * 0.24)));
+          const centerW = Math.max(460, total - leftW - rightW - gap * 4);
+          return (
+            <View style={{ flex: 1, flexDirection: "row", gap, padding: gap, justifyContent: "center" }}>
+              <View style={{ width: leftW }}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: S(4) }}>
+                  {!game.connected ? <Notice tone="warn">Connexion interrompue — reconnexion…</Notice> : null}
+                  {controls}<Requests game={game} emit={emit} />{presence}
+                </ScrollView>
+              </View>
+              <View style={{ width: centerW }}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: S(4) }}>
+                  <AtlasMapBlock ctx={ctx} view={view} width={centerW} height={Math.max(380, Math.round(centerW * 0.58))} />
+                  {balance}
+                  <View style={{ alignItems: "flex-end" }}><RoundMark round={runtime.round} /></View>
+                </ScrollView>
+              </View>
+              <View style={{ width: rightW }}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: S(4) }}>
+                  <AtlasSide ctx={ctx} view={view} previous={previous} width={rightW} />
+                  {actors}{feed}
+                </ScrollView>
+              </View>
+            </View>
+          );
+        })() : (
         <ScrollView contentContainerStyle={{ padding: S(4), gap: S(4), maxWidth: 1500, width: "100%", alignSelf: "center" }}>
           {!game.connected ? <Notice tone="warn">Connexion interrompue — reconnexion…</Notice> : null}
           {ctx ? <AtlasBoard view={view} ctx={ctx} previous={previous} width={Math.min(width, 1500) - S(8)} /> : null}
@@ -209,6 +237,7 @@ export function PresidentPost({ game, emit, title }: { game: any; emit: (e: stri
           </View>
           <View style={{ alignItems: "flex-end" }}><RoundMark round={runtime.round} /></View>
         </ScrollView>
+        )}
       </SafeAreaView>
       <Sheet visible={sheet === "rome"} onClose={() => setSheet(null)} title="Communiqué de Rome — proposition" accent={C.red}><RomeComposer emit={emit} /></Sheet>
       <Sheet visible={sheet === "situation"} onClose={() => setSheet(null)} title="Dossier de situation" accent={C.steel} wide><Situation view={view} scenario={lobby?.scenario} /></Sheet>
