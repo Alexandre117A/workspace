@@ -18,7 +18,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export default function Auth() {
   const params = useLocalSearchParams<{ mode?: string; next?: string; email?: string }>();
   const auth = useAuth();
-  const [mode, setMode] = useState<Mode>(params.mode === "register" ? "register" : params.mode === "guest" ? "guest" : "login");
+  const [mode, setMode] = useState<Mode>(params.mode === "login" ? "login" : "register");
   const next = typeof params.next === "string" && params.next.startsWith("/") ? params.next : null;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -152,11 +152,6 @@ export default function Auth() {
         </>
       ) : null}
 
-      {mode !== "guest" ? (
-        <Pressable accessibilityRole="link" onPress={() => setMode("guest")} style={{ alignSelf: "flex-start", paddingTop: S(1) }}>
-          <Text style={{ fontFamily: F.mono, fontSize: 11.5, color: "#6B6A66", textDecorationLine: "underline" }}>Essayer sans compte (profil invité temporaire)</Text>
-        </Pressable>
-      ) : null}
     </AuthFrame>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { DarkTheme, Stack, ThemeProvider } from "expo-router";
+import { DarkTheme, Redirect, Stack, ThemeProvider, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
@@ -55,8 +55,12 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Pages accessibles sans identification : l'écran d'accès lui-même et les textes légaux. Tout le reste exige un compte. */
+const PUBLIC = ["/auth", "/welcome", "/terms", "/privacy", "/forgot", "/reset", "/verify"];
+
 function Root() {
-  const { ready } = useAuth();
+  const { ready, user } = useAuth();
+  const path = usePathname();
   const [fonts] = useFonts({
     CormorantGaramond_400Regular, CormorantGaramond_500Medium_Italic, CormorantGaramond_600SemiBold,
     IBMPlexSans_400Regular, IBMPlexSans_500Medium, IBMPlexSans_600SemiBold, IBMPlexMono_400Regular, IBMPlexMono_600SemiBold,
@@ -65,6 +69,10 @@ function Root() {
     if (fonts && ready) SplashScreen.hideAsync().catch(() => undefined);
   }, [fonts, ready]);
   if (!fonts || !ready) return <Shell><View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Wordmark size={22} /></View></Shell>;
+  if ((!user || user.isGuest) && !PUBLIC.some((p) => path === p || path.startsWith(p + "/"))) {
+    const next = path && path !== "/" ? `&next=${encodeURIComponent(path)}` : "";
+    return <Redirect href={`/auth?mode=register${next}` as any} />;
+  }
   return (
     <Shell><ThemeProvider value={NAV_THEME}><Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" }, animation: "fade", title: "GEONEX" }} /></ThemeProvider></Shell>
   );
