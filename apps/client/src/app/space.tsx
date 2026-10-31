@@ -139,14 +139,7 @@ function Profile({ me, reload }: { me: any; reload: () => void }) {
             <Text style={{ fontFamily: F.mono, fontSize: 12.5, color: C.muted }}>{me.email}</Text>
             <Text style={{ fontFamily: F.mono, fontSize: 11.5, color: C.faint }}>Inscrit le {fmt(me.createdAt)}{me.role === "owner" ? " · administrateur" : ""}</Text>
           </View>
-          <Chip text={me.emailVerified ? "Adresse vérifiée" : "Adresse non vérifiée"} color={me.emailVerified ? C.green : C.amber} />
         </View>
-        {!me.emailVerified ? (
-          <View style={{ gap: S(2) }}>
-            <Notice tone="warn">{me.mail?.configured ? "Confirmez votre adresse avec le lien reçu par e-mail." : "L'envoi d'e-mails n'est pas encore activé sur ce serveur : la vérification n'est pas possible pour le moment."}</Notice>
-            {me.mail?.configured ? <Btn small variant="ghost" label="RENVOYER L'E-MAIL DE VÉRIFICATION" onPress={() => run(async () => { const r = await api<{ status: string }>("/auth/resend-verification", { body: {} }); return r.status === "sent" ? "E-mail envoyé." : "L'e-mail n'a pas pu être envoyé pour le moment."; })} /> : null}
-          </View>
-        ) : null}
       </Card>
       {msg ? <Notice tone={msg.tone}>{msg.text}</Notice> : null}
       <Card><H>Identité</H>
@@ -163,10 +156,10 @@ function Profile({ me, reload }: { me: any; reload: () => void }) {
           const r = await api<any>("/auth/profile", { method: "PATCH", body: { pseudonym: pseudo } }); await auth.replaceToken(r.token); reload(); return "Pseudonyme mis à jour.";
         })} />
       </Card>
-      <Card><H sub="La nouvelle adresse n'est active qu'après confirmation par le lien reçu à cette adresse.">Adresse e-mail</H>
+      <Card><H sub="Adresse de connexion uniquement : GEONEX n'envoie aucun e-mail. Le changement est immédiat.">Adresse e-mail</H>
         <Field label="Nouvelle adresse" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
         <Field label="Mot de passe actuel" value={emailPw} onChangeText={setEmailPw} secureTextEntry autoCapitalize="none" />
-        <Btn small label="CHANGER D'ADRESSE" disabled={!email.includes("@") || !emailPw} onPress={() => run(async () => { const r = await api<{ status: string }>("/auth/email", { body: { email: email.trim().toLowerCase(), password: emailPw } }); setEmail(""); setEmailPw(""); return r.status === "sent" ? "Un e-mail de confirmation a été envoyé à la nouvelle adresse." : "Demande enregistrée, mais l'e-mail de confirmation n'a pas pu être envoyé (envoi non configuré ou échec)."; })} />
+        <Btn small label="CHANGER D'ADRESSE" disabled={!email.includes("@") || !emailPw} onPress={() => run(async () => { await api("/auth/email", { body: { email: email.trim().toLowerCase(), password: emailPw } }); setEmail(""); setEmailPw(""); reload(); return "Adresse de connexion modifiée."; })} />
       </Card>
       <Card><H sub="Changer de mot de passe déconnecte vos autres appareils.">Mot de passe</H>
         <Field label="Mot de passe actuel" value={cur} onChangeText={setCur} secureTextEntry autoCapitalize="none" />
@@ -197,7 +190,7 @@ function Settings({ me, reload }: { me: any; reload: () => void }) {
     <View style={{ gap: S(4) }}>
       <Card><H>Notifications</H>
         <Toggle label="Invitations à une simulation" hint="Notification dans votre espace quand un joueur vous invite ou répond à votre invitation." value={me.notifications?.invitations !== false} onChange={(v) => save({ notifications: { invitations: v } })} />
-        <Toggle label="Actualités de la plateforme" hint="Désactivé par défaut. GEONEX n'envoie ni newsletter ni message commercial à ce jour ; vos e-mails de sécurité (vérification, réinitialisation) restent toujours envoyés." value={!!me.notifications?.product} onChange={(v) => save({ notifications: { product: v } })} />
+        <Toggle label="Actualités de la plateforme" hint="Désactivé par défaut. GEONEX n'envoie aucun e-mail, ni newsletter ni message commercial." value={!!me.notifications?.product} onChange={(v) => save({ notifications: { product: v } })} />
       </Card>
       <Card><H>Confidentialité</H>
         <Toggle label="Pouvoir être invité par mon pseudonyme" hint="Si vous le désactivez, un organisateur ne peut plus vous trouver par votre pseudonyme (les liens et le code de participation restent possibles)." value={me.discoverable !== false} onChange={(v) => save({ discoverable: v })} />
@@ -289,7 +282,6 @@ export default function Space() {
       default: return (
         <View style={{ gap: S(5) }}>
           {me?.isGuest ? <Notice tone="warn">Vous utilisez un profil invité temporaire. <Text onPress={() => router.push("/auth?mode=register")} style={{ textDecorationLine: "underline" }}>Créez un compte gratuit</Text> pour conserver vos simulations, favoris et invitations.</Notice> : null}
-          {me && !me.isGuest && !me.emailVerified ? <Notice tone="warn">{me.requireVerified ? "Confirmez votre adresse e-mail pour lancer ou rejoindre une simulation. " : "Votre adresse e-mail n'est pas encore vérifiée. "}<Text onPress={() => setTab("profile")} style={{ textDecorationLine: "underline" }}>Voir mon profil</Text></Notice> : null}
           {pending.length ? <Card accent={C.brass}><H sub={`${pending.length} invitation${pending.length > 1 ? "s" : ""} en attente`}>Invitations</H>{pending.slice(0, 2).map((i: any) => <View key={i.id} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: S(3), flexWrap: "wrap" }}><Text style={{ fontFamily: F.sans, fontSize: 14, color: C.text, flex: 1 }}>{i.from} vous invite à « {i.session.name} »</Text><Btn small label="VOIR" onPress={() => setTab("invitations")} /></View>)}</Card> : null}
           <View style={{ gap: S(3) }}>
             <H sub="Vos sessions actives, organisées ou rejointes.">Sessions en cours</H>

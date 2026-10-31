@@ -297,11 +297,6 @@ export const registerSchema = z
   .object({ email: emailField, pseudonym: pseudonymField, password: passwordField, passwordConfirm: z.string(), acceptTerms: z.literal(true, { message: "Acceptez les conditions d'utilisation." }) })
   .refine((v) => v.password === v.passwordConfirm, { path: ["passwordConfirm"], message: "Les mots de passe ne correspondent pas." });
 export const loginSchema = z.object({ email: emailField, password: z.string().min(1).max(200), remember: z.boolean().optional().default(false) });
-export const forgotSchema = z.object({ email: emailField });
-export const resetSchema = z
-  .object({ token: z.string().min(20).max(200), password: passwordField, passwordConfirm: z.string() })
-  .refine((v) => v.password === v.passwordConfirm, { path: ["passwordConfirm"], message: "Les mots de passe ne correspondent pas." });
-export const tokenSchema = z.object({ token: z.string().min(20).max(200) });
 export const profileSchema = z.object({
   pseudonym: pseudonymField.optional(),
   avatarColor: z.enum(["navy", "atlas", "brass", "red", "stone"]).optional(),
@@ -314,9 +309,8 @@ export const deleteAccountSchema = z.object({ password: z.string().max(200).opti
 
 export const inviteSchema = z.object({
   pseudonym: z.string().trim().max(PSEUDONYM_MAX).optional(),
-  email: emailField.optional(),
   link: z.boolean().optional(),
-}).refine((v) => !!v.pseudonym || !!v.email || v.link === true, { message: "Indiquez un pseudonyme, une adresse e-mail ou demandez un lien." });
+}).refine((v) => !!v.pseudonym || v.link === true, { message: "Indiquez un pseudonyme ou demandez un lien." });
 
 export const publishSchema = z.object({
   title: z.string().trim().min(5).max(120),

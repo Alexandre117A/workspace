@@ -19,13 +19,9 @@ services:
         generateValue: true
       - key: DATABASE_URL
         sync: false
-      # Comptes et e-mails (docs/PLATEFORME.md) : sans fournisseur SMTP, aucun e-mail n'est envoyé et l'interface le dit.
+      # Comptes (docs/PLATEFORME.md) : GEONEX n'envoie aucun e-mail.
       - key: GEONEX_PUBLIC_URL
         value: https://geonex.onrender.com
-      - key: SMTP_URL
-        sync: false
-      - key: GEONEX_MAIL_FROM
-        sync: false
       - key: GEONEX_OWNER_EMAILS
         sync: false
       - key: GEONEX_RESEARCH_CONTACT

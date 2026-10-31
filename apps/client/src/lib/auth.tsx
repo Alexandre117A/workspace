@@ -9,25 +9,21 @@ export interface User {
   role: "user" | "owner";
   isGuest: boolean;
   email?: string | null;
-  emailVerified?: boolean;
   avatarColor?: string;
   createdAt?: string;
   notifications?: { invitations: boolean; product: boolean };
   discoverable?: boolean;
-  mail?: { configured: boolean };
-  requireVerified?: boolean;
 }
 
 export interface RegisterInput { email: string; pseudonym: string; password: string; passwordConfirm: string; acceptTerms: true }
-export interface MailState { status: "sent" | "failed" | "skipped"; configured: boolean }
 
 interface AuthState {
   ready: boolean;
   user: User | null;
   login(email: string, password: string, remember?: boolean): Promise<void>;
-  register(input: RegisterInput): Promise<MailState>;
+  register(input: RegisterInput): Promise<void>;
   guest(displayName: string): Promise<void>;
-  upgrade(input: RegisterInput): Promise<MailState>;
+  upgrade(input: RegisterInput): Promise<void>;
   /** Relit le compte sur le serveur (statut de vérification, profil). */
   refresh(): Promise<void>;
   /** Remplace le jeton après un changement de profil ou de mot de passe (les anciens jetons sont révoqués côté serveur). */
@@ -90,15 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     login: async (email, password, remember = false) => accept(await api("/auth/login", { body: { email, password, remember } }), remember),
     register: async (input) => {
-      const res = await api<{ token: string; user: User; email: MailState }>("/auth/register", { body: input });
+      const res = await api<{ token: string; user: User }>("/auth/register", { body: input });
       await accept(res, true);
-      return res.email;
     },
     guest: async (displayName) => accept(await api("/auth/guest", { body: { displayName } })),
     upgrade: async (input) => {
-      const res = await api<{ token: string; user: User; email: MailState }>("/auth/upgrade", { body: input });
+      const res = await api<{ token: string; user: User }>("/auth/upgrade", { body: input });
       await accept(res, true);
-      return res.email;
     },
     refresh: async () => setUser(await api<User>("/auth/me")),
     replaceToken: async (token) => {

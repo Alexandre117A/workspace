@@ -5,7 +5,6 @@ import { AuthGuard, AuthService, AuthUser, CurrentUser, OptionalAuthGuard } from
 import { config } from "./config";
 import { Db } from "./db";
 import { LibraryService } from "./library";
-import { Mailer } from "./mailer";
 import { SessionsService } from "./sessions";
 import { AttemptLimiter, parse } from "./util";
 
@@ -33,7 +32,7 @@ const SESSION_COLS = `s.id, s.name, s.status, s.created_at, s.archived_at, s.sta
 export class SpaceService {
   private inviteLimiter = new AttemptLimiter(25, 3600_000);
 
-  constructor(private readonly db: Db, private readonly auth: AuthService, private readonly sessions: SessionsService, private readonly library: LibraryService, private readonly mailer: Mailer) {}
+  constructor(private readonly db: Db, private readonly auth: AuthService, private readonly sessions: SessionsService, private readonly library: LibraryService) {}
 
   private shape(r: any) {
     const st = statusLabel(r.status, !!r.archived_at);
@@ -138,15 +137,6 @@ export class SpaceService {
 
     const raw = randomBytes(24).toString("base64url");
     const link = `${config.publicUrl}/invite?token=${raw}`;
-    if (body.email) {
-      if (user.isGuest) throw new ForbiddenException("Créez un compte pour inviter par e-mail.");
-      if (!user.emailVerified && this.mailer.configured) throw new ForbiddenException("Vérifiez votre adresse e-mail avant d'inviter par e-mail.");
-      this.inviteLimiter.fail(user.id);
-      await this.db.query("INSERT INTO invitations(id, session_id, from_user, to_email, token_hash, kind, expires_at) VALUES ($1,$2,$3,$4,$5,'email',$6)", [id, sessionId, user.id, body.email, sha256(raw), expires]);
-      const mail = await this.auth.sendInviteMail(body.email, user.displayName, session.name, raw, user.id);
-      // Si l'e-mail n'a pas pu partir, l'organisateur reçoit le lien pour le transmettre lui-même : jamais d'envoi annoncé à tort.
-      return { id, kind: "email", to: body.email, mail: mail.status, link: mail.status === "sent" ? undefined : link };
-    }
     this.inviteLimiter.fail(user.id);
     await this.db.query("INSERT INTO invitations(id, session_id, from_user, token_hash, kind, expires_at) VALUES ($1,$2,$3,$4,'link',$5)", [id, sessionId, user.id, sha256(raw), expires]);
     return { id, kind: "link", link };
@@ -191,7 +181,6 @@ export class SpaceService {
     const inv = await this.byToken(String(token ?? ""));
     if (inv.status !== "pending" || this.expired(inv)) throw new ConflictException("Cette invitation n'est plus valable.");
     const res = await this.sessions.admitById(user, inv.session_id);
-    if (inv.kind === "email") await this.db.query("UPDATE invitations SET status = 'accepted', responded_at = now(), to_user = $1 WHERE id = $2 AND status = 'pending'", [user.id, inv.id]);
     if (!res.rejoined) await this.db.query("INSERT INTO notifications(id, user_id, kind, payload) VALUES ($1,$2,'invitation_accepted',$3)", [randomUUID(), inv.from_user, { from: user.displayName, session: inv.session_name }]);
     return { sessionId: res.sessionId };
   }

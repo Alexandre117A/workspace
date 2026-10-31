@@ -1,4 +1,4 @@
-// Plateforme : comptes (inscription, e-mails, vérification, réinitialisation), profil, invitations, espace personnel,
+// Plateforme : comptes (inscription, connexion, aucun e-mail), profil, invitations, espace personnel,
 // bibliothèque (favoris, publication, modération) et suppression de compte. Moteur et API réels, base en mémoire.
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
@@ -15,9 +15,6 @@ after(async () => {
 const PW = "motdepasse-solide9";
 const reg = (email, pseudonym, extra = {}) =>
   stack.api("/auth/register", { method: "POST", body: { email, pseudonym, password: PW, passwordConfirm: PW, acceptTerms: true, ...extra } });
-const mails = () => stack.mailer.captured;
-const lastMail = (to) => [...mails()].reverse().find((m) => m.to === to);
-const tokenOf = (mail) => mail.text.match(/token=([\w-]+)/)[1];
 const claims = (jwtToken) => JSON.parse(Buffer.from(jwtToken.split(".")[1], "base64url").toString());
 const people = {};
 
@@ -45,7 +42,7 @@ async function lobby(token, scenarioId) {
   return r.data;
 }
 
-test("inscription : règles, unicité, e-mail de bienvenue honnête, vérification à usage unique", async () => {
+test("inscription : règles, unicité, aucun e-mail envoyé ni exigé", async () => {
   const { api } = stack;
   assert.equal((await reg("x@geonex.test", "Xavier", { password: "court", passwordConfirm: "court" })).status, 400, "mot de passe trop faible");
   assert.equal((await reg("x@geonex.test", "Xavier", { passwordConfirm: "autre-chose-9x" })).status, 400, "confirmation différente");
@@ -55,17 +52,9 @@ test("inscription : règles, unicité, e-mail de bienvenue honnête, vérificati
   assert.equal((await reg("pas-un-mail", "Xavier")).status, 400, "adresse invalide");
   assert.equal((await api("/auth/pseudonym?value=Alice")).data.available, true);
 
-  const before = mails().length;
   const a = await reg("alice@geonex.test", "Alice");
   assert.equal(a.status, 201, JSON.stringify(a.data));
   assert.equal(a.data.user.displayName, "Alice");
-  assert.deepEqual(a.data.email, { status: "skipped", configured: false }, "aucun fournisseur réel : l'e-mail n'est jamais annoncé comme envoyé");
-  assert.equal(mails().length, before + 1, "un seul e-mail de bienvenue");
-  const welcome = lastMail("alice@geonex.test");
-  assert.equal(welcome.subject, "Bienvenue sur GEONEX — Votre aventure géopolitique commence.");
-  assert.match(welcome.html, /Bienvenue sur GEONEX, Alice !/);
-  for (const w of ["COMPRENDRE", "SIMULER", "DÉCIDER", "ACCÉDER À MON ESPACE GEONEX"]) assert.ok(welcome.html.toUpperCase().includes(w), w);
-  assert.match(welcome.text, /\/verify\?token=/);
   assert.doesNotMatch(JSON.stringify(a.data), /password/i, "aucun mot de passe dans la réponse");
 
   assert.equal((await api("/auth/pseudonym?value=alice")).data.available, false, "unicité insensible à la casse");
@@ -77,14 +66,9 @@ test("inscription : règles, unicité, e-mail de bienvenue honnête, vérificati
   assert.match(dupMail.data.message, /déjà associée à un compte/);
 
   const token = a.data.token;
-  assert.equal((await api("/auth/me", { token })).data.emailVerified, false);
-  const t = tokenOf(welcome);
-  const v = await api("/auth/verify", { method: "POST", body: { token: t } });
-  assert.equal(v.status, 201);
-  assert.equal((await api("/auth/verify", { method: "POST", body: { token: t } })).status, 400, "jeton à usage unique");
-  assert.equal((await api("/auth/verify", { method: "POST", body: { token: "x".repeat(40) } })).status, 400, "jeton inconnu");
-  assert.equal((await api("/auth/me", { token })).data.emailVerified, true);
-  assert.equal((await api("/auth/resend-verification", { method: "POST", token })).data.status, "already");
+  const me0 = (await api("/auth/me", { token })).data;
+  assert.equal(me0.emailVerified, undefined, "aucune vérification d'adresse : GEONEX n'envoie aucun e-mail");
+  assert.equal(me0.mail, undefined);
   people.Alice = { token, email: "alice@geonex.test", id: a.data.user.id };
 
   // connexion
@@ -97,25 +81,14 @@ test("inscription : règles, unicité, e-mail de bienvenue honnête, vérificati
   assert.equal((await api("/auth/me")).status, 401, "route privée refusée sans jeton");
 });
 
-test("mot de passe oublié : réponse neutre, lien unique et temporaire, révocation des anciennes sessions", async () => {
+test("aucune fonction e-mail : routes supprimées ; le mot de passe se change connecté et révoque les anciennes sessions", async () => {
   const { api } = stack;
-  const n0 = mails().length;
-  const unknown = await api("/auth/forgot", { method: "POST", body: { email: "inconnu@geonex.test" } });
-  assert.deepEqual(unknown.data, { ok: true });
-  assert.equal(mails().length, n0, "aucun e-mail pour une adresse inconnue, mais la même réponse");
-  const known = await api("/auth/forgot", { method: "POST", body: { email: "alice@geonex.test" } });
-  assert.deepEqual(known.data, { ok: true });
-  assert.equal(mails().length, n0 + 1);
-  await api("/auth/forgot", { method: "POST", body: { email: "alice@geonex.test" } });
-  assert.equal(mails().length, n0 + 1, "pas de renvoi dans la minute (anti-abus)");
-  const mail = lastMail("alice@geonex.test");
-  assert.equal(mail.subject, "GEONEX — Réinitialisation de votre mot de passe");
-  assert.doesNotMatch(mail.text, new RegExp(PW), "le mot de passe n'est jamais envoyé");
-  const token = tokenOf(mail);
+  for (const route of ["forgot", "reset", "verify", "resend-verification"]) {
+    assert.equal((await api(`/auth/${route}`, { method: "POST", body: { email: "alice@geonex.test" } })).status, 404, `/auth/${route} n'existe plus`);
+  }
   const NEW = "nouveau-secret-42";
-  assert.equal((await api("/auth/reset", { method: "POST", body: { token, password: "court", passwordConfirm: "court" } })).status, 400);
-  assert.equal((await api("/auth/reset", { method: "POST", body: { token, password: NEW, passwordConfirm: NEW } })).status, 201);
-  assert.equal((await api("/auth/reset", { method: "POST", body: { token, password: NEW, passwordConfirm: NEW } })).status, 400, "lien non réutilisable");
+  assert.equal((await api("/auth/password", { method: "POST", token: people.Alice.token, body: { current: "mauvais-mot-de-passe9", next: NEW } })).status, 401);
+  assert.equal((await api("/auth/password", { method: "POST", token: people.Alice.token, body: { current: PW, next: NEW } })).status, 201);
   assert.equal((await api("/auth/me", { token: people.Alice.token })).status, 401, "les anciennes sessions sont révoquées");
   assert.equal((await api("/auth/login", { method: "POST", body: { email: "alice@geonex.test", password: PW } })).status, 401);
   const ok = await api("/auth/login", { method: "POST", body: { email: "alice@geonex.test", password: NEW } });
@@ -123,7 +96,7 @@ test("mot de passe oublié : réponse neutre, lien unique et temporaire, révoca
   people.Alice.token = ok.data.token;
 });
 
-test("profil : pseudonyme, préférences, changement d'adresse vérifié, mot de passe", async () => {
+test("profil : pseudonyme, préférences, changement d'adresse de connexion, mot de passe", async () => {
   const { api } = stack;
   const bob = await user("bob@geonex.test", "Bob");
   const conflict = await api("/auth/profile", { method: "PATCH", token: bob.token, body: { pseudonym: "alice" } });
@@ -138,9 +111,8 @@ test("profil : pseudonyme, préférences, changement d'adresse vérifié, mot de
   assert.equal((await api("/auth/email", { method: "POST", token: bob.token, body: { email: "bob2@geonex.test", password: "mauvais-mot-de-passe9" } })).status, 401);
   assert.equal((await api("/auth/email", { method: "POST", token: bob.token, body: { email: "alice@geonex.test", password: PW } })).status, 409);
   assert.equal((await api("/auth/email", { method: "POST", token: bob.token, body: { email: "bob2@geonex.test", password: PW } })).status, 201);
-  assert.equal((await api("/auth/me", { token: bob.token })).data.email, "bob@geonex.test", "l'adresse ne change qu'après vérification");
-  await api("/auth/verify", { method: "POST", body: { token: tokenOf(lastMail("bob2@geonex.test")) } });
-  assert.equal((await api("/auth/me", { token: bob.token })).data.email, "bob2@geonex.test");
+  assert.equal((await api("/auth/me", { token: bob.token })).data.email, "bob2@geonex.test", "adresse de connexion changée aussitôt (aucun e-mail de confirmation)");
+  assert.equal((await api("/auth/login", { method: "POST", body: { email: "bob2@geonex.test", password: PW } })).status, 201);
 
   const changed = await api("/auth/password", { method: "POST", token: bob.token, body: { current: PW, next: "autre-secret-77" } });
   assert.equal(changed.status, 201);
@@ -151,7 +123,7 @@ test("profil : pseudonyme, préférences, changement d'adresse vérifié, mot de
   assert.equal((await api("/auth/me", { token: all.data.token })).status, 200);
 });
 
-test("invitations par pseudonyme, par lien et par e-mail ; participations et sessions en cours", { timeout: 120000 }, async () => {
+test("invitations par pseudonyme et par lien ; participations et sessions en cours", { timeout: 120000 }, async () => {
   const { api } = stack;
   const alice = people.Alice;
   const carl = await user("carl@geonex.test", "Carl");
@@ -216,14 +188,7 @@ test("invitations par pseudonyme, par lien et par e-mail ; participations et ses
   const list = (await api(`/space/sessions/${s.sessionId}/invitations`, { token: alice.token })).data;
   assert.ok(list.some((i) => i.status === "revoked") && list.some((i) => i.status === "accepted"));
 
-  // e-mail : sans fournisseur réel, rien n'est annoncé comme envoyé et l'organisateur reçoit le lien
-  const em = await inv(alice.token, { email: "eve@geonex.test" });
-  assert.equal(em.status, 201, JSON.stringify(em.data));
-  assert.equal(em.data.mail, "skipped");
-  assert.ok(em.data.link);
-  const invMail = lastMail("eve@geonex.test");
-  assert.match(invMail.subject, /Alice vous invite/);
-  assert.match(invMail.html, /REJOINDRE LA SIMULATION/);
+  assert.equal((await inv(alice.token, { email: "eve@geonex.test" })).status, 400, "l'invitation par e-mail n'existe plus");
 
   // archivage (aucune suppression)
   assert.equal((await api(`/space/sessions/${s.sessionId}/archive`, { method: "POST", token: carl.token })).status, 403);

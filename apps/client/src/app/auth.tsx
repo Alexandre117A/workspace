@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { pseudonymIssues } from "@geonex/shared";
-import { AuthFrame, FormButton, FormLink, FormNotice, FormTitle, LightField, PasswordChecklist, PasswordField } from "../components/AuthKit";
+import { AuthFrame, FormButton, FormNotice, FormTitle, LightField, PasswordChecklist, PasswordField } from "../components/AuthKit";
 import { api } from "../lib/api";
 import { cleanMessage, useAuth } from "../lib/auth";
 import { C, F, S } from "../theme";
@@ -81,8 +81,8 @@ export default function Auth() {
         router.replace((next as any) ?? "/");
       } else {
         const body = { email: email.trim().toLowerCase(), pseudonym: pseudonym.trim(), password, passwordConfirm: confirm, acceptTerms: true as const };
-        const mail = auth.user?.isGuest ? await auth.upgrade(body) : await auth.register(body);
-        router.replace({ pathname: "/welcome", params: { status: mail.status, email: body.email, ...(next ? { next } : {}) } });
+        if (auth.user?.isGuest) await auth.upgrade(body); else await auth.register(body);
+        router.replace({ pathname: "/welcome", params: next ? { next } : {} });
       }
     } catch (e: any) {
       setError(cleanMessage(e.message));
@@ -113,7 +113,6 @@ export default function Auth() {
               <View style={{ width: 18, height: 18, borderWidth: 1.5, borderColor: "#41698B", backgroundColor: remember ? "#284D74" : "#fff", alignItems: "center", justifyContent: "center" }}>{remember ? <Text style={{ color: "#fff", fontSize: 12, lineHeight: 14 }}>✓</Text> : null}</View>
               <Text style={{ fontFamily: F.sans, fontSize: 13.5, color: "#1B2430" }}>Rester connecté 30 jours</Text>
             </Pressable>
-            <FormLink href="/forgot">Mot de passe oublié ?</FormLink>
           </View>
           {error ? <FormNotice tone="error">{error}</FormNotice> : null}
           <FormButton label="SE CONNECTER" onPress={submit} busy={busy} />
