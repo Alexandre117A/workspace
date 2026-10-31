@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
-import { Bar, Body, Label, Panel, statusLabel } from "../ui";
+import { Body, Label, statusLabel } from "../ui";
+import { Bar, Panel } from "./hud";
 import { GeoMap } from "../GeoMap";
 import { Flag } from "../Flag";
 import { useLayout } from "../ui";

@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { PHASE_LABELS } from "@geonex/shared";
 import { Flag } from "../components/Flag";
 import { useLayout } from "../components/ui";
+import { HudFrame, Led, TECH } from "../components/game/hud";
 import { C, F, S } from "../theme";
 import { AtlasContext, buildAtlasContext } from "./context";
 import { IndicatorsPanel, IntelligencePanel, ScenarioTimeline, useDeltas } from "./panels";
@@ -60,8 +61,8 @@ export function AtlasSide({ ctx, view, previous, width, onFocusActor }: { ctx: A
       <View accessibilityRole="tablist" style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: C.lineHi }}>
         {tabs.map((t) => (
           <Pressable key={t.key} accessibilityRole="tab" accessibilityState={{ selected: tab === t.key }} onPress={() => setTab(t.key)}
-            style={{ paddingHorizontal: 12, paddingVertical: 9, borderBottomWidth: 2, borderBottomColor: tab === t.key ? C.brass : "transparent", marginBottom: -1 }}>
-            <Text style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 1.6, color: tab === t.key ? C.brass : C.muted, textTransform: "uppercase" }}>{t.label}</Text>
+            style={{ paddingHorizontal: 12, paddingVertical: 9, borderBottomWidth: 2, borderBottomColor: tab === t.key ? TECH : "transparent", marginBottom: -1 }}>
+            <Text style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 1.6, color: tab === t.key ? TECH : C.muted, textTransform: "uppercase" }}>{t.label}</Text>
           </Pressable>
         ))}
       </View>
@@ -76,16 +77,17 @@ export function AtlasSide({ ctx, view, previous, width, onFocusActor }: { ctx: A
 export function AtlasMapBlock({ ctx, view, width, height, compact, focus }: { ctx: AtlasContext; view: any; width: number; height: number; compact?: boolean; focus?: MapFocus | null }) {
   const st = ctx.geography.style;
   return (
-    <View style={{ borderWidth: 1, borderColor: C.lineHi, backgroundColor: C.panel }}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: S(3), paddingVertical: 7, gap: 10 }}>
+    <HudFrame style={{ backgroundColor: "#0A1626" }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: S(3), paddingVertical: 7, gap: 10, borderBottomWidth: 1, borderBottomColor: `${TECH}33` }}>
+        <Led color={TECH} size={6} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.monoBold, fontSize: 9.5, letterSpacing: 2, color: C.brass, textTransform: "uppercase" }}>Atlas stratégique · {ctx.geography.name}</Text>
+          <Text style={{ fontFamily: F.monoBold, fontSize: 9.5, letterSpacing: 2, color: TECH, textTransform: "uppercase" }}>Atlas stratégique · {ctx.geography.name}</Text>
         </View>
         <Text style={{ fontFamily: F.mono, fontSize: 9.5, letterSpacing: 1, color: C.faint, textTransform: "uppercase" }}>{st.label}</Text>
       </View>
       <StrategicMap ctx={ctx} width={width - 2} height={height} compact={compact} focus={focus} />
       {!compact ? <View style={{ padding: S(3) }}><ScenarioTimeline ctx={ctx} view={view} /></View> : null}
-    </View>
+    </HudFrame>
   );
 }
 
@@ -119,8 +121,8 @@ export function TeamWorkspace({ view, ctx, previous, decision, access, notice, b
   const focusActor = (id: string) => { setFocus({ type: "actor", id, n: Date.now() }); if (phone) setPane("map"); };
   const tab = (key: Pane, label: string) => (
     <Pressable key={key} accessibilityRole="tab" accessibilityState={{ selected: pane === key }} onPress={() => setPane(key)}
-      style={{ flex: 1, alignItems: "center", paddingVertical: 11, borderBottomWidth: 2, borderBottomColor: pane === key ? C.brass : "transparent" }}>
-      <Text style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 1.4, color: pane === key ? C.brass : C.muted, textTransform: "uppercase" }}>{label}</Text>
+      style={{ flex: 1, alignItems: "center", paddingVertical: 11, borderBottomWidth: 2, borderBottomColor: pane === key ? TECH : "transparent" }}>
+      <Text style={{ fontFamily: F.monoBold, fontSize: 10.5, letterSpacing: 1.4, color: pane === key ? TECH : C.muted, textTransform: "uppercase" }}>{label}</Text>
     </Pressable>
   );
 
@@ -153,7 +155,7 @@ export function TeamWorkspace({ view, ctx, previous, decision, access, notice, b
           <View accessibilityRole="tablist" style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: C.lineHi }}>
             {tab("decision", "Décision")}{tab("synthesis", "Synthèse")}{tab("data", "Données")}
           </View>
-          {t === "decision" ? <View style={{ backgroundColor: "#0E1B2DF2", borderWidth: 1, borderColor: C.lineHi, padding: S(5) }}>{decision}</View> : null}
+          {t === "decision" ? <HudFrame style={{ padding: S(5) }}>{decision}</HudFrame> : null}
           {t === "synthesis" ? <IntelligencePanel ctx={ctx} view={view} previous={previous} onFocusActor={focusActor} /> : null}
           {t === "data" ? <IndicatorsPanel ctx={ctx} view={view} previous={previous} width={w} /> : null}
           <View style={{ flexDirection: "row", gap: S(3), flexWrap: "wrap" }}>{access}</View>
@@ -170,7 +172,7 @@ export function TeamWorkspace({ view, ctx, previous, decision, access, notice, b
   return (
     <View style={{ flex: 1, flexDirection: "row", gap, padding: gap, justifyContent: "center" }} onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
       <View style={{ width: leftW }}>
-        <ScrollView style={{ flex: 1, backgroundColor: "#0E1B2DF2", borderWidth: 1, borderColor: C.lineHi }} contentContainerStyle={{ padding: S(5) }}>{notice}{decision}</ScrollView>
+        <HudFrame style={{ flex: 1 }}><ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: S(5) }}>{notice}{decision}</ScrollView></HudFrame>
       </View>
       <View style={{ width: centerW, gap: S(3) }}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: S(3) }}>

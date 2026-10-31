@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { DECISION_LABELS, DECISIONS_NEEDING_ARBITRATION, DECISIONS_NEEDING_TARGET, DecisionCategory, MAX_ALLOCATION_PER_DECISION, MAX_DECISIONS_PER_ROUND } from "@geonex/shared";
-import { Body, Btn, Chip, Divider, Field, Label, Notice, Panel, Stepper } from "../ui";
+import { Body, Btn, Chip, Divider, Field, Label, Notice, Stepper } from "../ui";
+import { Panel } from "./hud";
 import { Ack, fmtClock, remaining, useNow } from "../../lib/game";
 import { C, F, S } from "../../theme";
 

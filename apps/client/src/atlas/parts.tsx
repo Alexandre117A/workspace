@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { C, F, S } from "../theme";
 import { PROVENANCE, Provenance } from "./provenance";
+import { Brackets, TECH } from "../components/game/hud";
 
 /** Pastille de provenance : distingue donnée attestée, estimation, hypothèse, valeur fictive, valeur de simulation, donnée absente. */
 export function ProvenanceChip({ status, compact = false, light = false }: { status: Provenance; compact?: boolean; light?: boolean }) {
@@ -38,7 +39,8 @@ export function AtlasPanel({ title, kicker, tone = "navy", accent = C.brass, chi
     </View>
   );
   return (
-    <View style={{ backgroundColor: ivory ? "#F3F0E9" : C.panel, borderWidth: 1, borderColor: ivory ? "#D7CFBA" : C.lineHi, borderTopWidth: 2, borderTopColor: accent, padding: S(4), gap: S(3) }}>
+    <View style={{ backgroundColor: ivory ? "#F3F0E9" : "#0C1B2EF0", borderWidth: 1, borderColor: ivory ? "#D7CFBA" : C.lineHi, borderTopWidth: 2, borderTopColor: ivory ? accent : TECH, padding: S(4), gap: S(3), ...(ivory ? null : ({ boxShadow: `0 0 16px ${TECH}14` } as any)) }}>
+      {ivory ? null : <Brackets color={TECH} size={10} thick={1} />}
       {collapsible ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} accessibilityLabel={`${title} : ${open ? "replier" : "déplier"}`} onPress={() => setOpen(!open)}>{head}</Pressable> : head}
       {open ? children : null}
     </View>

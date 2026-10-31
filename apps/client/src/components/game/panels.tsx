@@ -1,7 +1,8 @@
 import { Text, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 import { BALANCE_UNLOCK_ROUND } from "@geonex/shared";
-import { Bar, Body, Label, Panel, statusLabel, useLayout } from "../ui";
+import { Body, Label, statusLabel, useLayout } from "../ui";
+import { Bar, Panel } from "./hud";
 import { GeoMap } from "../GeoMap";
 import { Curve } from "../Curve";
 import { C, F, S } from "../../theme";

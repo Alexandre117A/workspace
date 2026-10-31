@@ -2,7 +2,8 @@ import { InvitePanel } from "../InvitePanel";
 import { useState } from "react";
 import { Platform, Pressable, Share, Text, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { Body, Btn, H1, Label, Notice, Panel, Screen, useLayout } from "../ui";
+import { Body, Btn, H1, Label, Notice, Screen, useLayout } from "../ui";
+import { Panel } from "./hud";
 import { api } from "../../lib/api";
 import { C, F, MODE_STYLE, S } from "../../theme";
 
